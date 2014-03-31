@@ -29,7 +29,7 @@ class Variable:
     return self.name == other.name
 
   def __str__(self):
-    return str(self.name)
+    return self.name
 
   def __hash__(self):
     return hash(str(self))
@@ -58,7 +58,7 @@ class UnificationTerm:
     return self.name == other.name
 
   def __str__(self):
-    return str(self.name)
+    return self.name
 
   def __hash__(self):
     return hash(str(self))
@@ -96,7 +96,9 @@ class Function:
     return all([self.terms[i] == other.terms[i] for i in range(len(self.terms))])
 
   def __str__(self):
-    return str(self.name) + "(" + ", ".join([str(term) for term in self.terms]) + ")"
+    if len(self.terms) == 0:
+      return self.name
+    return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
 
   def __hash__(self):
     return hash(str(self))
@@ -138,7 +140,7 @@ class Predicate:
     return all([self.terms[i] == other.terms[i] for i in range(len(self.terms))])
 
   def __str__(self):
-    return str(self.name) + "(" + ", ".join([str(term) for term in self.terms]) + ")"
+    return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
 
   def __hash__(self):
     return hash(str(self))
