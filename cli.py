@@ -3,7 +3,7 @@
 
 # 2014 Stephan Boyer
 
-import sys
+import sys, readline
 from rules import *
 
 ##############################################################################
