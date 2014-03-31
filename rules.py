@@ -138,8 +138,6 @@ def proofGenerator(sequent):
         new_sequent_b.left.remove(formula)
         new_sequent_a.left.add(formula.formula_a)
         new_sequent_b.left.add(formula.formula_b)
-        frontier.append(new_sequent_a)
-        frontier.append(new_sequent_b)
         if new_sequent_a not in visited:
           frontier.append(new_sequent_a)
           visited.add(new_sequent_a)
