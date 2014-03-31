@@ -1,6 +1,8 @@
 #!/usr/bin/python -O
 # -*- coding: utf-8 -*-
 
+# 2014 Stephan Boyer
+
 from language import *
 
 ##############################################################################
@@ -27,3 +29,5 @@ axioms = {
   ForAll(x, ForAll(y, eq(add(x, succ(y)), succ(add(x, y))))),
   ForAll(x, ForAll(y, eq(mul(x, succ(y)), add(mul(x, y), y))))
 }
+
+axioms = set()

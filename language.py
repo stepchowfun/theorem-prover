@@ -1,6 +1,8 @@
 #!/usr/bin/python -O
 # -*- coding: utf-8 -*-
 
+# 2014 Stephan Boyer
+
 ##############################################################################
 # Terms
 ##############################################################################
@@ -81,7 +83,9 @@ class Function:
   def replace(self, old, new):
     if self == old:
       return new
-    return Function(self.name, [term.replace(old, new) for term in self.terms])
+    return Function(self.name,
+      [term.replace(old, new) for term in self.terms]
+    )
 
   def occurs(self, unification_term):
     return any([term.occurs(unification_term) for term in self.terms])
@@ -93,12 +97,16 @@ class Function:
       return False
     if len(self.terms) != len(other.terms):
       return False
-    return all([self.terms[i] == other.terms[i] for i in range(len(self.terms))])
+    return all(
+      [self.terms[i] == other.terms[i] for i in range(len(self.terms))]
+    )
 
   def __str__(self):
     if len(self.terms) == 0:
       return self.name
-    return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
+    return self.name + "(" + ", ".join(
+      [str(term) for term in self.terms]
+    ) + ")"
 
   def __hash__(self):
     return hash(str(self))
@@ -125,7 +133,9 @@ class Predicate:
   def replace(self, old, new):
     if self == old:
       return new
-    return Predicate(self.name, [term.replace(old, new) for term in self.terms])
+    return Predicate(self.name,
+      [term.replace(old, new) for term in self.terms]
+    )
 
   def occurs(self, unification_term):
     return any([term.occurs(unification_term) for term in self.terms])
@@ -137,10 +147,16 @@ class Predicate:
       return False
     if len(self.terms) != len(other.terms):
       return False
-    return all([self.terms[i] == other.terms[i] for i in range(len(self.terms))])
+    return all(
+      [self.terms[i] == other.terms[i] for i in range(len(self.terms))]
+    )
 
   def __str__(self):
-    return self.name + "(" + ", ".join([str(term) for term in self.terms]) + ")"
+    if len(self.terms) == 0:
+      return self.name
+    return self.name + "(" + ", ".join(
+      [str(term) for term in self.terms]
+    ) + ")"
 
   def __hash__(self):
     return hash(str(self))
@@ -188,15 +204,20 @@ class And:
   def replace(self, old, new):
     if self == old:
       return new
-    return And(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
+    return And(
+      self.formula_a.replace(old, new),
+      self.formula_b.replace(old, new)
+    )
 
   def occurs(self, unification_term):
-    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
+    return self.formula_a.occurs(unification_term) or \
+      self.formula_b.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, And):
       return False
-    return self.formula_a == other.formula_a and self.formula_b == other.formula_b
+    return self.formula_a == other.formula_a and \
+      self.formula_b == other.formula_b
 
   def __str__(self):
     return "(" + str(self.formula_a) + " ∧ " + str(self.formula_b) + ")"
@@ -218,15 +239,20 @@ class Or:
   def replace(self, old, new):
     if self == old:
       return new
-    return Or(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
+    return Or(
+      self.formula_a.replace(old, new),
+      self.formula_b.replace(old, new)
+    )
 
   def occurs(self, unification_term):
-    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
+    return self.formula_a.occurs(unification_term) or \
+      self.formula_b.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, Or):
       return False
-    return self.formula_a == other.formula_a and self.formula_b == other.formula_b
+    return self.formula_a == other.formula_a and \
+      self.formula_b == other.formula_b
 
   def __str__(self):
     return "(" + str(self.formula_a) + " ∨ " + str(self.formula_b) + ")"
@@ -248,15 +274,20 @@ class Implies:
   def replace(self, old, new):
     if self == old:
       return new
-    return Implies(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
+    return Implies(
+      self.formula_a.replace(old, new),
+      self.formula_b.replace(old, new)
+    )
 
   def occurs(self, unification_term):
-    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
+    return self.formula_a.occurs(unification_term) or \
+      self.formula_b.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, Implies):
       return False
-    return self.formula_a == other.formula_a and self.formula_b == other.formula_b
+    return self.formula_a == other.formula_a and \
+      self.formula_b == other.formula_b
 
   def __str__(self):
     return "(" + str(self.formula_a) + " → " + str(self.formula_b) + ")"
@@ -278,7 +309,10 @@ class ForAll:
   def replace(self, old, new):
     if self == old:
       return new
-    return ForAll(self.variable.replace(old, new), self.formula.replace(old, new))
+    return ForAll(
+      self.variable.replace(old, new),
+      self.formula.replace(old, new)
+    )
 
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
@@ -286,7 +320,8 @@ class ForAll:
   def __eq__(self, other):
     if not isinstance(other, ForAll):
       return False
-    return self.variable == other.variable and self.formula == other.formula
+    return self.variable == other.variable and \
+      self.formula == other.formula
 
   def __str__(self):
     return "(" + "∀" + str(self.variable) + ": " + str(self.formula) + ")"
@@ -308,7 +343,10 @@ class ThereExists:
   def replace(self, old, new):
     if self == old:
       return new
-    return ForAll(self.variable.replace(old, new), self.formula.replace(old, new))
+    return ForAll(
+      self.variable.replace(old, new),
+      self.formula.replace(old, new)
+    )
 
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
@@ -316,7 +354,8 @@ class ThereExists:
   def __eq__(self, other):
     if not isinstance(other, ThereExists):
       return False
-    return self.variable == other.variable and self.formula == other.formula
+    return self.variable == other.variable and \
+      self.formula == other.formula
 
   def __str__(self):
     return "(" + "∃" + str(self.variable) + ": " + str(self.formula) + ")"

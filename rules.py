@@ -1,12 +1,15 @@
 #!/usr/bin/python -O
 # -*- coding: utf-8 -*-
 
+# 2014 Stephan Boyer
+
 from axioms import *
 
 ##############################################################################
 # Unification
 ##############################################################################
 
+# solve a single equation
 def unify(term_a, term_b):
   if isinstance(term_a, UnificationTerm):
     if term_b.occurs(term_a):
@@ -30,16 +33,32 @@ def unify(term_a, term_b):
     for i in range(len(term_a.terms)):
       a = term_a.terms[i]
       b = term_b.terms[i]
-      for key in substitution:
-        a = a.replace(key, substitution[key])
-        b = b.replace(key, substitution[key])
+      for k, v in substitution.items():
+        a = a.replace(k, v)
+        b = b.replace(k, v)
       sub = unify(a, b)
       if sub == None:
         return None
-      for key in sub:
-        substitution[key] = sub[key]
+      for k, v in sub.items():
+        substitution[k] = v
     return substitution
   return None
+
+# solve a list of equations
+def unify_list(pairs):
+  substitution = { }
+  for term_a, term_b in pairs:
+    a = term_a
+    b = term_b
+    for k, v in substitution.items():
+      a = a.replace(k, v)
+      b = b.replace(k, v)
+    sub = unify(a, b)
+    if sub == None:
+      return None
+    for k, v in sub.items():
+      substitution[k] = v
+  return substitution
 
 ##############################################################################
 # Sequents
@@ -124,14 +143,19 @@ class SearchResult(Exception):
 # returns True if the sequent is provable
 # returns False or loops forever if the sequent is not provable
 def proofGenerator(sequent):
+  # sequents to be proven
   frontier = [sequent]
+
+  # sequents which have been visited
   visited = { sequent }
-  depths = { } # keeps track of the number of times a ForAll left or ThereExists right has been used
+
+  # keep track of the number of times each ForAll (left) or
+  # ThereExists (right) has been used
+  depths = { }
 
   while len(frontier) > 0:
     # get the next sequent
     old_sequent = frontier.pop(0)
-    print old_sequent
     if old_sequent.isAxiomaticallyTrue():
       continue
     
@@ -148,7 +172,10 @@ def proofGenerator(sequent):
       if isinstance(formula, Predicate):
         continue
       if isinstance(formula, Not):
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.left.remove(formula)
         new_sequent.right.add(formula.formula)
         if new_sequent not in visited:
@@ -157,7 +184,10 @@ def proofGenerator(sequent):
           reduced = True
           break
       if isinstance(formula, And):
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.left.remove(formula)
         new_sequent.left.add(formula.formula_a)
         new_sequent.left.add(formula.formula_b)
@@ -167,8 +197,14 @@ def proofGenerator(sequent):
           reduced = True
           break
       if isinstance(formula, Or):
-        new_sequent_a = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-        new_sequent_b = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent_a = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
+        new_sequent_b = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent_a.left.remove(formula)
         new_sequent_b.left.remove(formula)
         new_sequent_a.left.add(formula.formula_a)
@@ -184,8 +220,14 @@ def proofGenerator(sequent):
         if reduced:
           break
       if isinstance(formula, Implies):
-        new_sequent_a = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-        new_sequent_b = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent_a = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
+        new_sequent_b = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent_a.left.remove(formula)
         new_sequent_b.left.remove(formula)
         new_sequent_a.right.add(formula.formula_a)
@@ -202,9 +244,14 @@ def proofGenerator(sequent):
           break
       if isinstance(formula, ThereExists):
         variable = Variable(old_sequent.getUnusedVariableName())
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.left.remove(formula)
-        new_sequent.left.add(formula.formula.replace(formula.variable, variable))
+        new_sequent.left.add(
+          formula.formula.replace(formula.variable, variable)
+        )
         if new_sequent not in visited:
           frontier.append(new_sequent)
           visited.add(new_sequent)
@@ -223,7 +270,10 @@ def proofGenerator(sequent):
       if isinstance(formula, Predicate):
         continue
       if isinstance(formula, Not):
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.right.remove(formula)
         new_sequent.left.add(formula.formula)
         if new_sequent not in visited:
@@ -232,8 +282,14 @@ def proofGenerator(sequent):
           reduced = True
           break
       if isinstance(formula, And):
-        new_sequent_a = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-        new_sequent_b = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent_a = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
+        new_sequent_b = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent_a.right.remove(formula)
         new_sequent_b.right.remove(formula)
         new_sequent_a.right.add(formula.formula_a)
@@ -249,7 +305,10 @@ def proofGenerator(sequent):
         if reduced:
           break
       if isinstance(formula, Or):
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.right.remove(formula)
         new_sequent.right.add(formula.formula_a)
         new_sequent.right.add(formula.formula_b)
@@ -259,7 +318,10 @@ def proofGenerator(sequent):
           reduced = True
           break
       if isinstance(formula, Implies):
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.right.remove(formula)
         new_sequent.left.add(formula.formula_a)
         new_sequent.right.add(formula.formula_b)
@@ -270,9 +332,14 @@ def proofGenerator(sequent):
           break
       if isinstance(formula, ForAll):
         variable = Variable(old_sequent.getUnusedVariableName())
-        new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
+        new_sequent = Sequent(
+          old_sequent.left.copy(),
+          old_sequent.right.copy()
+        )
         new_sequent.right.remove(formula)
-        new_sequent.right.add(formula.formula.replace(formula.variable, variable))
+        new_sequent.right.add(
+          formula.formula.replace(formula.variable, variable)
+        )
         if new_sequent not in visited:
           frontier.append(new_sequent)
           visited.add(new_sequent)
@@ -303,7 +370,8 @@ def proofGenerator(sequent):
       if isinstance(formula, ThereExists):
         if formula in depths:
           depth = depths[formula]
-          if thereexists_right_depth is None or thereexists_right_depth > depth:
+          if thereexists_right_depth is None or \
+             thereexists_right_depth > depth:
             thereexists_right_formula = formula
             thereexists_right_depth = depth
         else:
@@ -314,27 +382,46 @@ def proofGenerator(sequent):
     # apply the shallowest ForAll (left) / ThereExists (right)
     apply_left = False
     apply_right = False
-    if forall_left_formula is not None and thereexists_right_formula is None:
+    if forall_left_formula is not None and \
+       thereexists_right_formula is None:
       apply_left = True
-    if forall_left_formula is None and thereexists_right_formula is not None:
+    if forall_left_formula is None and \
+       thereexists_right_formula is not None:
       apply_right = True
-    if forall_left_formula is not None and thereexists_right_formula is not None:
+    if forall_left_formula is not None and \
+       thereexists_right_formula is not None:
       if forall_left_depth < thereexists_right_depth:
         apply_left = True
       else:
         apply_right = True
     if apply_left:
       depths[forall_left_formula] += 1
-      new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-      new_sequent.left.add(forall_left_formula.formula.replace(forall_left_formula.variable, UnificationTerm(old_sequent.getUnusedUnificationTermName())))
+      new_sequent = Sequent(
+        old_sequent.left.copy(),
+        old_sequent.right.copy()
+      )
+      new_sequent.left.add(
+        forall_left_formula.formula.replace(
+          forall_left_formula.variable,
+          UnificationTerm(old_sequent.getUnusedUnificationTermName())
+        )
+      )
       if new_sequent not in visited:
         frontier.append(new_sequent)
         visited.add(new_sequent)
         reduced = True
     if apply_right:
       depths[thereexists_right_formula] += 1
-      new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-      new_sequent.right.add(thereexists_right_formula.formula.replace(thereexists_right_formula.variable, UnificationTerm(old_sequent.getUnusedUnificationTermName())))
+      new_sequent = Sequent(
+        old_sequent.left.copy(),
+        old_sequent.right.copy()
+      )
+      new_sequent.right.add(
+        thereexists_right_formula.formula.replace(
+          thereexists_right_formula.variable,
+          UnificationTerm(old_sequent.getUnusedUnificationTermName())
+        )
+      )
       if new_sequent not in visited:
         frontier.append(new_sequent)
         visited.add(new_sequent)
@@ -359,13 +446,15 @@ def proveSequent(sequent):
       return r.result
 
 # returns True if the formula is provable from the axioms
-# returns False or loops forever if the formula is not provable from the axioms
+# returns False or loops forever if the formula is not
+#   provable from the axioms
 def proveFormula(formula):
   return proveSequent(Sequent(axioms, { formula }))
 
 # returns True if the formula is provable from the axioms
 # returns False if its inverse is provable from the axioms
-# returns None or loops forever if its veracity is independent of the axioms
+# returns None or loops forever if its veracity is
+#   independent of the axioms
 def proveOrDisproveFormula(formula):
   g = proofGenerator(Sequent(axioms, { formula }))
   h = proofGenerator(Sequent(axioms, { Not(formula) }))
