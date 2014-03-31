@@ -10,15 +10,44 @@ class Variable:
     self.name = name
 
   def fv(self):
-    return set([self])
+    return { self }
 
   def replace(self, old, new):
     if self == old:
       return new
     return self
 
+  def occurs(self, unification_term):
+    return False
+
   def __eq__(self, other):
     if not isinstance(other, Variable):
+      return False
+    return self.name == other.name
+
+  def __str__(self):
+    return str(self.name)
+
+  def __hash__(self):
+    return hash(str(self))
+
+class UnificationTerm:
+  def __init__(self, name):
+    self.name = name
+
+  def fv(self):
+    return set()
+
+  def replace(self, old, new):
+    if self == old:
+      return new
+    return self
+
+  def occurs(self, unification_term):
+    return self == unification_term
+
+  def __eq__(self, other):
+    if not isinstance(other, UnificationTerm):
       return False
     return self.name == other.name
 
@@ -40,6 +69,9 @@ class Function:
     if self == old:
       return new
     return Function(self.name, [term.replace(old, new) for term in self.terms])
+
+  def occurs(self, unification_term):
+    return any([term.occurs(unification_term) for term in self.terms])
 
   def __eq__(self, other):
     if not isinstance(other, Function):
@@ -73,6 +105,9 @@ class Predicate:
       return new
     return Predicate(self.name, [term.replace(old, new) for term in self.terms])
 
+  def occurs(self, unification_term):
+    return any([term.occurs(unification_term) for term in self.terms])
+
   def __eq__(self, other):
     if not isinstance(other, Predicate):
       return False
@@ -100,6 +135,9 @@ class Not:
       return new
     return Not(self.formula.replace(old, new))
 
+  def occurs(self, unification_term):
+    return self.formula.occurs(unification_term)
+
   def __eq__(self, other):
     if not isinstance(other, Not):
       return False
@@ -123,6 +161,9 @@ class And:
     if self == old:
       return new
     return And(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
+
+  def occurs(self, unification_term):
+    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, And):
@@ -148,6 +189,9 @@ class Or:
       return new
     return Or(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
 
+  def occurs(self, unification_term):
+    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
+
   def __eq__(self, other):
     if not isinstance(other, Or):
       return False
@@ -172,6 +216,9 @@ class Implies:
       return new
     return Implies(self.formula_a.replace(old, new), self.formula_b.replace(old, new))
 
+  def occurs(self, unification_term):
+    return self.formula_a.occurs(unification_term) or self.formula_b.occurs(unification_term)
+
   def __eq__(self, other):
     if not isinstance(other, Implies):
       return False
@@ -189,12 +236,15 @@ class ForAll:
     self.formula = formula
 
   def fv(self):
-    return self.formula.fv() - set([self.variable])
+    return self.formula.fv() - { self.variable }
 
   def replace(self, old, new):
     if self == old:
       return new
     return ForAll(self.variable.replace(old, new), self.formula.replace(old, new))
+
+  def occurs(self, unification_term):
+    return self.formula.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, ForAll):
@@ -213,12 +263,15 @@ class ThereExists:
     self.formula = formula
 
   def fv(self):
-    return self.formula.fv() - set([self.variable])
+    return self.formula.fv() - { self.variable }
 
   def replace(self, old, new):
     if self == old:
       return new
     return ForAll(self.variable.replace(old, new), self.formula.replace(old, new))
+
+  def occurs(self, unification_term):
+    return self.formula.occurs(unification_term)
 
   def __eq__(self, other):
     if not isinstance(other, ThereExists):
