@@ -58,13 +58,30 @@ class Sequent:
       result |= formula.fv()
     return result
 
-  def getUnusedVariableName(self, prefx):
+  def ft(self):
+    result = set()
+    for formula in self.left:
+      result |= formula.ft()
+    for formula in self.right:
+      result |= formula.ft()
+    return result
+
+  def getUnusedVariableName(self):
     fv = self.fv()
     index = 1
-    name = prefx + str(index)
+    name = "v" + str(index)
     while Variable(name) in fv:
       index += 1
-      name = prefx + str(index)
+      name = "v" + str(index)
+    return name
+
+  def getUnusedUnificationTermName(self):
+    fv = self.ft()
+    index = 1
+    name = "t" + str(index)
+    while UnificationTerm(name) in fv:
+      index += 1
+      name = "t" + str(index)
     return name
 
   def isAxiomaticallyTrue(self):
@@ -184,7 +201,7 @@ def proofGenerator(sequent):
         if reduced:
           break
       if isinstance(formula, ThereExists):
-        variable = Variable(old_sequent.getUnusedVariableName("v"))
+        variable = Variable(old_sequent.getUnusedVariableName())
         new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
         new_sequent.left.remove(formula)
         new_sequent.left.add(formula.formula.replace(formula.variable, variable))
@@ -252,7 +269,7 @@ def proofGenerator(sequent):
           reduced = True
           break
       if isinstance(formula, ForAll):
-        variable = Variable(old_sequent.getUnusedVariableName("v"))
+        variable = Variable(old_sequent.getUnusedVariableName())
         new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
         new_sequent.right.remove(formula)
         new_sequent.right.add(formula.formula.replace(formula.variable, variable))
@@ -309,7 +326,7 @@ def proofGenerator(sequent):
     if apply_left:
       depths[forall_left_formula] += 1
       new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-      new_sequent.left.add(forall_left_formula.formula.replace(forall_left_formula.variable, UnificationTerm(old_sequent.getUnusedVariableName("t"))))
+      new_sequent.left.add(forall_left_formula.formula.replace(forall_left_formula.variable, UnificationTerm(old_sequent.getUnusedUnificationTermName())))
       if new_sequent not in visited:
         frontier.append(new_sequent)
         visited.add(new_sequent)
@@ -317,7 +334,7 @@ def proofGenerator(sequent):
     if apply_right:
       depths[thereexists_right_formula] += 1
       new_sequent = Sequent(old_sequent.left.copy(), old_sequent.right.copy())
-      new_sequent.right.add(thereexists_right_formula.formula.replace(thereexists_right_formula.variable, UnificationTerm(old_sequent.getUnusedVariableName("t"))))
+      new_sequent.right.add(thereexists_right_formula.formula.replace(thereexists_right_formula.variable, UnificationTerm(old_sequent.getUnusedUnificationTermName())))
       if new_sequent not in visited:
         frontier.append(new_sequent)
         visited.add(new_sequent)

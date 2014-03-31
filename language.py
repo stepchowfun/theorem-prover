@@ -12,6 +12,9 @@ class Variable:
   def fv(self):
     return { self }
 
+  def ft(self):
+    return set()
+
   def replace(self, old, new):
     if self == old:
       return new
@@ -37,6 +40,9 @@ class UnificationTerm:
 
   def fv(self):
     return set()
+
+  def ft(self):
+    return { self }
 
   def replace(self, old, new):
     if self == old:
@@ -66,6 +72,11 @@ class Function:
     if len(self.terms) == 0:
       return set()
     return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
+
+  def ft(self):
+    if len(self.terms) == 0:
+      return set()
+    return reduce((lambda x, y: x | y), [term.ft() for term in self.terms])
 
   def replace(self, old, new):
     if self == old:
@@ -104,6 +115,11 @@ class Predicate:
       return set()
     return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
 
+  def ft(self):
+    if len(self.terms) == 0:
+      return set()
+    return reduce((lambda x, y: x | y), [term.ft() for term in self.terms])
+
   def replace(self, old, new):
     if self == old:
       return new
@@ -134,6 +150,9 @@ class Not:
   def fv(self):
     return self.formula.fv()
 
+  def ft(self):
+    return self.formula.ft()
+
   def replace(self, old, new):
     if self == old:
       return new
@@ -160,6 +179,9 @@ class And:
 
   def fv(self):
     return self.formula_a.fv() | self.formula_b.fv()
+
+  def ft(self):
+    return self.formula_a.ft() | self.formula_b.ft()
 
   def replace(self, old, new):
     if self == old:
@@ -188,6 +210,9 @@ class Or:
   def fv(self):
     return self.formula_a.fv() | self.formula_b.fv()
 
+  def ft(self):
+    return self.formula_a.ft() | self.formula_b.ft()
+
   def replace(self, old, new):
     if self == old:
       return new
@@ -214,6 +239,9 @@ class Implies:
 
   def fv(self):
     return self.formula_a.fv() | self.formula_b.fv()
+
+  def ft(self):
+    return self.formula_a.ft() | self.formula_b.ft()
 
   def replace(self, old, new):
     if self == old:
@@ -242,6 +270,9 @@ class ForAll:
   def fv(self):
     return self.formula.fv() - { self.variable }
 
+  def ft(self):
+    return self.formula.ft()
+
   def replace(self, old, new):
     if self == old:
       return new
@@ -268,6 +299,9 @@ class ThereExists:
 
   def fv(self):
     return self.formula.fv() - { self.variable }
+
+  def ft(self):
+    return self.formula.ft()
 
   def replace(self, old, new):
     if self == old:
