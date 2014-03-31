@@ -332,8 +332,8 @@ def proveFormula(formula):
 # returns False if its inverse is provable from the axioms
 # returns None or loops forever if its veracity is independent of the axioms
 def proveOrDisproveFormula(formula):
-  g = proofGenerator(proveSequent(Sequent(axioms, { formula })))
-  h = proofGenerator(proveSequent(Sequent(axioms, { Not(formula) })))
+  g = proofGenerator(Sequent(axioms, { formula }))
+  h = proofGenerator(Sequent(axioms, { Not(formula) }))
   while g is not None or h is not None:
     if g is not None:
       try:
