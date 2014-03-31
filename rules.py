@@ -74,9 +74,27 @@ class Sequent:
           return True
     return False
 
+  def __eq__(self, other):
+    for formula in self.left:
+      if formula not in other.left:
+        return False
+    for formula in other.left:
+      if formula not in self.left:
+        return False
+    for formula in self.right:
+      if formula not in other.right:
+        return False
+    for formula in other.right:
+      if formula not in self.right:
+        return False
+    return True
+
   def __str__(self):
     return ", ".join([str(formula) for formula in self.left]) + " ⊢ " + \
       ", ".join([str(formula) for formula in self.right])
+
+  def __hash__(self):
+    return hash(str(self))
 
 ##############################################################################
 # Proof search
