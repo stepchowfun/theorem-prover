@@ -63,6 +63,8 @@ class Function:
     self.terms = terms
 
   def fv(self):
+    if len(self.terms) == 0:
+      return set()
     return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
 
   def replace(self, old, new):
@@ -98,6 +100,8 @@ class Predicate:
     self.terms = terms
 
   def fv(self):
+    if len(self.terms) == 0:
+      return set()
     return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
 
   def replace(self, old, new):
