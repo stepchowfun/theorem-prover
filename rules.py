@@ -166,6 +166,7 @@ def proofGenerator(sequent):
   while len(frontier) > 0:
     # get the next sequent
     old_sequent = frontier.pop(0)
+    print old_sequent
     if old_sequent.isAxiomaticallyTrue():
       continue
 
@@ -181,6 +182,13 @@ def proofGenerator(sequent):
         unified = False
         index = [0] * len(sibling_pair_lists)
         while True:
+          # attempt to unify at the index
+          if unify_list([sibling_pair_lists[i][index[i]]
+            for i in range(len(sibling_pair_lists))]) is not None:
+            unified = True
+            break
+
+          # increment the index
           pos = len(sibling_pair_lists) - 1
           while pos >= 0:
             index[pos] += 1
@@ -189,12 +197,6 @@ def proofGenerator(sequent):
             index[pos] = 0
             pos -= 1
           if pos < 0:
-            break
-
-          # attempt to unify
-          if unify_list([sibling_pair_lists[i][index[i]]
-            for i in range(len(sibling_pair_lists))]) is not None:
-            unified = True
             break
         if unified:
           visited |= old_sequent.siblings

@@ -136,8 +136,10 @@ def parse(tokens):
   # Function
   if tokens[0].isalnum() and tokens[0] not in keywords and \
     len(tokens) > 1 and not any([c.isupper() for c in tokens[0]]):
-    if len(tokens) < 3 or tokens[1] != "(" or tokens[-1] != ")":
+    if len(tokens) < 3 or tokens[1] != "(":
       raise Error("Missing function argument list.")
+    if tokens[-1] != ")":
+      raise Error("Missing ')' after function argument list.")
     name = tokens[0]
     args = []
     i = 2
@@ -166,8 +168,10 @@ def parse(tokens):
     return Predicate(tokens[0], [])
   if tokens[0].isalnum() and tokens[0] not in keywords and \
     len(tokens) > 1 and any([c.isupper() for c in tokens[0]]):
-    if len(tokens) < 3 or tokens[1] != "(" or tokens[-1] != ")":
+    if len(tokens) < 3 or tokens[1] != "(":
       raise Error("Missing predicate argument list.")
+    if tokens[-1] != ")":
+      raise Error("Missing ')' after predicate argument list.")
     name = tokens[0]
     args = []
     i = 2
@@ -267,14 +271,22 @@ def main():
       inp = raw_input("\n> ")
       tokens = lexer(inp)
       formula = parse(tokens)
-      typecheck_formula(formula)
+      try:
+        typecheck_formula(formula)
+      except Error as formula_error:
+        try:
+          typecheck_term(formula)
+        except Error as term_error:
+          raise formula_error
+        else:
+          raise Error("Enter a formula, not a term.")
       result = proveOrDisproveFormula(formula)
       if result == True:
-        print "Formula proven: " + str(formula)
+        print "Formula proven: " + str(formula) + "."
       if result == False:
-        print "Formula disproven: " + str(formula)
+        print "Formula disproven: " + str(formula) + "."
       if result is None:
-        print "Formula neither provable nor disprovable: " + str(formula)
+        print "Formula neither provable nor disprovable: " + str(formula) + "."
     except Error as e:
       print e.message
     except KeyboardInterrupt:

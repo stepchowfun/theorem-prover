@@ -9,11 +9,11 @@ from language import *
 # Axioms
 ##############################################################################
 
-zero = Function("0", [])
-succ = lambda x:    Function("S", [x])
-eq   = lambda x, y: Function("=", [x, y])
-add  = lambda x, y: Function("+", [x, y])
-mul  = lambda x, y: Function("*", [x, y])
+zero = Function("zero", [])
+succ = lambda x:    Function("succ", [x])
+add  = lambda x, y: Function("add", [x, y])
+mul  = lambda x, y: Function("mul", [x, y])
+eq   = lambda x, y: Predicate("Eq", [x, y])
 x    = Variable("x")
 y    = Variable("y")
 z    = Variable("z")
