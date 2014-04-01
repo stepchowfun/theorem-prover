@@ -250,44 +250,75 @@ def typecheck_formula(formula):
     return
   raise Error("Invalid formula: " + str(formula) + ".")
 
+def check_formula(formula):
+  try:
+    typecheck_formula(formula)
+  except Error as formula_error:
+    try:
+      typecheck_term(formula)
+    except Error as term_error:
+      raise formula_error
+    else:
+      raise Error("Enter a formula, not a term.")
+
 def main():
-  print "  Terms:"
-  print "    x"
-  print "    f(x)"
+  print "First-Order Logic Theorem Prover"
+  print "2014 Stephan Boyer"
   print ""
-  print "  Formulae:"
-  print "    P(x)"
-  print "    not P"
-  print "    P or Q"
-  print "    P and Q"
-  print "    P implies Q"
-  print "    forall x. P(x)"
-  print "    forsome x. P(x)"
+  print "Terms:"
+  print "  x"
+  print "  f(x)"
   print ""
-  print "Enter formulae at the prompt."
+  print "Formulae:"
+  print "  P(x)"
+  print "  not P"
+  print "  P or Q"
+  print "  P and Q"
+  print "  P implies Q"
+  print "  forall x. P(x)"
+  print "  forsome x. P(x)"
+  print ""
+  print "Enter formulae at the prompt. The following commands are also available for manipulating axioms:"
+  print ""
+  print "  add <formula>"
+  print "  remove <formula>"
+  print "  reset"
+
+  axioms = set()
 
   while True:
     try:
       inp = raw_input("\n> ")
       tokens = lexer(inp)
-      formula = parse(tokens)
-      try:
-        typecheck_formula(formula)
-      except Error as formula_error:
-        try:
-          typecheck_term(formula)
-        except Error as term_error:
-          raise formula_error
+      if len(tokens) > 0 and tokens[0] == "add":
+        formula = parse(tokens[1:])
+        check_formula(formula)
+        axioms.add(formula)
+        print "Axiom added: " + str(formula) + "."
+      elif len(tokens) > 0 and tokens[0] == "remove":
+        formula = parse(tokens[1:])
+        check_formula(formula)
+        if formula in axioms:
+          axioms.remove(formula)
+          print "Axiom removed: " + str(formula) + "."
         else:
-          raise Error("Enter a formula, not a term.")
-      result = proveOrDisproveFormula(formula)
-      if result == True:
-        print "Formula proven: " + str(formula) + "."
-      if result == False:
-        print "Formula disproven: " + str(formula) + "."
-      if result is None:
-        print "Formula neither provable nor disprovable: " + \
-          str(formula) + "."
+          print "Not an axiom: " + str(formula) + "."
+      elif len(tokens) == 1 and tokens[0] == "axioms":
+        for axiom in axioms:
+          print axiom
+      elif len(tokens) == 1 and tokens[0] == "reset":
+        axioms = set()
+      else:
+        formula = parse(tokens)
+        check_formula(formula)
+        result = proveOrDisproveFormula(axioms, formula)
+        if result == True:
+          print "Formula proven: " + str(formula) + "."
+        if result == False:
+          print "Formula disproven: " + str(formula) + "."
+        if result is None:
+          print "Formula neither provable nor disprovable: " + \
+            str(formula) + "."
     except Error as e:
       print e.message
     except KeyboardInterrupt:

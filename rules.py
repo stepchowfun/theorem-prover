@@ -539,15 +539,15 @@ def proveSequent(sequent):
 
 # returns True if the formula is provable
 # returns False or loops forever if the formula is not provable
-def proveFormula(formula):
-  return proveSequent(Sequent(set(), { formula }, None))
+def proveFormula(axioms, formula):
+  return proveSequent(Sequent(axioms, { formula }, None))
 
 # returns True if the formula is provable
 # returns False if its inverse is provable
 # returns None or loops forever if the formula is not provable
-def proveOrDisproveFormula(formula):
-  g = proofGenerator(Sequent(set(), { formula }, None))
-  h = proofGenerator(Sequent(set(), { Not(formula) }, None))
+def proveOrDisproveFormula(axioms, formula):
+  g = proofGenerator(Sequent(axioms, { formula }, None))
+  h = proofGenerator(Sequent(axioms, { Not(formula) }, None))
   while g is not None or h is not None:
     if g is not None:
       try:
