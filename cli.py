@@ -286,7 +286,7 @@ def main():
       if result == False:
         print "Formula disproven: " + str(formula) + "."
       if result is None:
-        print "Formula neither provable nor disprovable: " +
+        print "Formula neither provable nor disprovable: " + \
           str(formula) + "."
     except Error as e:
       print e.message
