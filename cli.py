@@ -3,8 +3,12 @@
 
 # 2014 Stephan Boyer
 
-import sys, readline
+import sys
 from rules import *
+try:
+  import readline
+except ImportError:
+  pass
 
 ##############################################################################
 # Command-line interface
