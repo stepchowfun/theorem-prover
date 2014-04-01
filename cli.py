@@ -206,10 +206,10 @@ def typecheck_term(term):
   if isinstance(term, Variable):
     return
   if isinstance(term, Function):
-    for term in formula.terms:
-      typecheck_term(term)
+    for subterm in term.terms:
+      typecheck_term(subterm)
     return
-  raise Error("Invalid term: " + str(formula) + ".")
+  raise Error("Invalid term: " + str(term) + ".")
 
 def typecheck_formula(formula):
   if isinstance(formula, Predicate):
