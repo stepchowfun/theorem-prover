@@ -199,7 +199,8 @@ def proofGenerator(sequent):
             break
         if unified:
           visited |= old_sequent.siblings
-          frontier = [sequent for sequent in frontier if sequent not in old_sequent.siblings]
+          frontier = [sequent for sequent in frontier
+            if sequent not in old_sequent.siblings]
           continue
       else:
         # unlink this sequent
