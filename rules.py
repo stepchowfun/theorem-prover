@@ -105,7 +105,7 @@ class Sequent:
     return name
 
   def isAxiomaticallyTrue(self):
-    return len(self.left & self.right) > 0
+    return len(set(self.left.keys()) & set(self.right.keys())) > 0
 
   def getUnifiablePairs(self):
     pairs = []
@@ -146,26 +146,21 @@ class Sequent:
 # Proof search
 ##############################################################################
 
-class SearchResult(Exception):
-  def __init__(self, result):
-    self.result = result
-
 # returns True if the sequent is provable
 # returns False or loops forever if the sequent is not provable
-def proofGenerator(sequent):
+def proveSequent(sequent):
   # sequents to be proven
   frontier = [sequent]
 
   # sequents which have been visited
   visited = { sequent }
 
-  # keep track of the number of times each ForAll (left) or
-  # ThereExists (right) has been used
-  depths = { }
-
   while len(frontier) > 0:
     # get the next sequent
     old_sequent = frontier.pop(0)
+    print old_sequent
+
+    # check if this sequent is axiomatically true without unification
     if old_sequent.isAxiomaticallyTrue():
       continue
 
@@ -205,364 +200,270 @@ def proofGenerator(sequent):
       else:
         # unlink this sequent
         old_sequent.siblings.remove(old_sequent)
-    
-    # attempt to reduce a formula in the sequent
-    reduced = False
 
-    # left side (excluding ForAll)
-    for formula in old_sequent.left:
-      yield
-      if isinstance(formula, Variable):
-        continue
-      if isinstance(formula, Function):
-        continue
-      if isinstance(formula, Predicate):
-        continue
-      if isinstance(formula, Not):
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.left.remove(formula)
-        new_sequent.right.add(formula.formula)
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-      if isinstance(formula, And):
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.left.remove(formula)
-        new_sequent.left.add(formula.formula_a)
-        new_sequent.left.add(formula.formula_b)
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-      if isinstance(formula, Or):
-        new_sequent_a = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_b = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_a.left.remove(formula)
-        new_sequent_b.left.remove(formula)
-        new_sequent_a.left.add(formula.formula_a)
-        new_sequent_b.left.add(formula.formula_b)
-        if new_sequent_a not in visited:
-          if new_sequent_a.siblings is not None:
-            new_sequent_a.siblings.add(new_sequent_a)
-          frontier.append(new_sequent_a)
-          visited.add(new_sequent_a)
-          reduced = True
-        if new_sequent_b not in visited:
-          if new_sequent_b.siblings is not None:
-            new_sequent_b.siblings.add(new_sequent_b)
-          frontier.append(new_sequent_b)
-          visited.add(new_sequent_b)
-          reduced = True
-        if reduced:
-          break
-      if isinstance(formula, Implies):
-        new_sequent_a = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_b = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_a.left.remove(formula)
-        new_sequent_b.left.remove(formula)
-        new_sequent_a.right.add(formula.formula_a)
-        new_sequent_b.left.add(formula.formula_b)
-        if new_sequent_a not in visited:
-          if new_sequent_a.siblings is not None:
-            new_sequent_a.siblings.add(new_sequent_a)
-          frontier.append(new_sequent_a)
-          visited.add(new_sequent_a)
-          reduced = True
-        if new_sequent_b not in visited:
-          if new_sequent_b.siblings is not None:
-            new_sequent_b.siblings.add(new_sequent_b)
-          frontier.append(new_sequent_b)
-          visited.add(new_sequent_b)
-          reduced = True
-        if reduced:
-          break
-      if isinstance(formula, ThereExists):
-        variable = Variable(old_sequent.getUnusedVariableName())
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.left.remove(formula)
-        new_sequent.left.add(
-          formula.formula.replace(formula.variable, variable)
-        )
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-    if reduced:
-      continue
-
-    # right side (excluding ThereExists)
-    for formula in old_sequent.right:
-      yield
-      if isinstance(formula, Variable):
-        continue
-      if isinstance(formula, Function):
-        continue
-      if isinstance(formula, Predicate):
-        continue
-      if isinstance(formula, Not):
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.right.remove(formula)
-        new_sequent.left.add(formula.formula)
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-      if isinstance(formula, And):
-        new_sequent_a = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_b = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent_a.right.remove(formula)
-        new_sequent_b.right.remove(formula)
-        new_sequent_a.right.add(formula.formula_a)
-        new_sequent_b.right.add(formula.formula_b)
-        if new_sequent_a not in visited:
-          if new_sequent_a.siblings is not None:
-            new_sequent_a.siblings.add(new_sequent_a)
-          frontier.append(new_sequent_a)
-          visited.add(new_sequent_a)
-          reduced = True
-        if new_sequent_b not in visited:
-          if new_sequent_b.siblings is not None:
-            new_sequent_b.siblings.add(new_sequent_b)
-          frontier.append(new_sequent_b)
-          visited.add(new_sequent_b)
-          reduced = True
-        if reduced:
-          break
-      if isinstance(formula, Or):
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.right.remove(formula)
-        new_sequent.right.add(formula.formula_a)
-        new_sequent.right.add(formula.formula_b)
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-      if isinstance(formula, Implies):
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.right.remove(formula)
-        new_sequent.left.add(formula.formula_a)
-        new_sequent.right.add(formula.formula_b)
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-      if isinstance(formula, ForAll):
-        variable = Variable(old_sequent.getUnusedVariableName())
-        new_sequent = Sequent(
-          old_sequent.left.copy(),
-          old_sequent.right.copy(),
-          old_sequent.siblings
-        )
-        new_sequent.right.remove(formula)
-        new_sequent.right.add(
-          formula.formula.replace(formula.variable, variable)
-        )
-        if new_sequent not in visited:
-          if new_sequent.siblings is not None:
-            new_sequent.siblings.add(new_sequent)
-          frontier.append(new_sequent)
-          visited.add(new_sequent)
-          reduced = True
-          break
-    if reduced:
-      continue
-
-    # ForAll (left)
-    forall_left_formula = None
-    forall_left_depth = None
-    for formula in old_sequent.left:
-      if isinstance(formula, ForAll):
-        if formula in depths:
-          depth = depths[formula]
-          if forall_left_depth is None or forall_left_depth > depth:
-            forall_left_formula = formula
-            forall_left_depth = depth
-        else:
-          forall_left_formula = formula
-          forall_left_depth = 0
-          depths[formula] = 0
-
-    # ThereExists (right)
-    thereexists_right_formula = None
-    thereexists_right_depth = None
-    for formula in old_sequent.right:
-      if isinstance(formula, ThereExists):
-        if formula in depths:
-          depth = depths[formula]
-          if thereexists_right_depth is None or \
-             thereexists_right_depth > depth:
-            thereexists_right_formula = formula
-            thereexists_right_depth = depth
-        else:
-          thereexists_right_formula = formula
-          thereexists_right_depth = 0
-          depths[formula] = 0
-
-    # apply the shallowest ForAll (left) / ThereExists (right)
-    apply_left = False
-    apply_right = False
-    if forall_left_formula is not None and \
-       thereexists_right_formula is None:
-      apply_left = True
-    if forall_left_formula is None and \
-       thereexists_right_formula is not None:
-      apply_right = True
-    if forall_left_formula is not None and \
-       thereexists_right_formula is not None:
-      if forall_left_depth < thereexists_right_depth:
+    while True:
+      # determine which formula to expand
+      left_formula = None
+      left_depth = None
+      for formula, depth in old_sequent.left.items():
+        if left_depth is None or left_depth > depth:
+          if not isinstance(formula, Predicate):
+            left_formula = formula
+            left_depth = depth
+      right_formula = None
+      right_depth = None
+      for formula, depth in old_sequent.right.items():
+        if right_depth is None or right_depth > depth:
+          if not isinstance(formula, Predicate):
+            right_formula = formula
+            right_depth = depth
+      apply_left = False
+      apply_right = False
+      if left_formula is not None and right_formula is None:
         apply_left = True
-      else:
+      if left_formula is None and right_formula is not None:
         apply_right = True
-    if apply_left:
-      depths[forall_left_formula] += 1
-      new_sequent = Sequent(
-        old_sequent.left.copy(),
-        old_sequent.right.copy(),
-        old_sequent.siblings or set()
-      )
-      new_sequent.left.add(
-        forall_left_formula.formula.replace(
-          forall_left_formula.variable,
-          UnificationTerm(old_sequent.getUnusedUnificationTermName())
-        )
-      )
-      if new_sequent not in visited:
-        if new_sequent.siblings is not None:
-          new_sequent.siblings.add(new_sequent)
-        frontier.append(new_sequent)
-        visited.add(new_sequent)
-        reduced = True
-    if apply_right:
-      depths[thereexists_right_formula] += 1
-      new_sequent = Sequent(
-        old_sequent.left.copy(),
-        old_sequent.right.copy(),
-        old_sequent.siblings or set()
-      )
-      new_sequent.right.add(
-        thereexists_right_formula.formula.replace(
-          thereexists_right_formula.variable,
-          UnificationTerm(old_sequent.getUnusedUnificationTermName())
-        )
-      )
-      if new_sequent not in visited:
-        if new_sequent.siblings is not None:
-          new_sequent.siblings.add(new_sequent)
-        frontier.append(new_sequent)
-        visited.add(new_sequent)
-        reduced = True
-    if reduced:
-      continue
-    
-    # nothing more to reduce (i.e., we got stuck)
-    raise SearchResult(False)
+      if left_formula is not None and right_formula is not None:
+        if left_depth < right_depth:
+          apply_left = True
+        else:
+          apply_right = True
+      if left_formula is None and right_formula is None:
+        return False
+
+      # apply a left rule
+      if apply_left:
+        if isinstance(left_formula, Not):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.left[left_formula]
+          new_sequent.right[left_formula.formula] = old_sequent.left[left_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(left_formula, And):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.left[left_formula]
+          new_sequent.left[left_formula.formula_a] = old_sequent.left[left_formula]
+          new_sequent.left[left_formula.formula_b] = old_sequent.left[left_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(left_formula, Or):
+          new_sequent_a = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          new_sequent_b = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent_a.left[left_formula]
+          del new_sequent_b.left[left_formula]
+          new_sequent_a.left[left_formula.formula_a] = old_sequent.left[left_formula]
+          new_sequent_b.left[left_formula.formula_b] = old_sequent.left[left_formula]
+          if new_sequent_a not in visited:
+            if new_sequent_a.siblings is not None:
+              new_sequent_a.siblings.add(new_sequent_a)
+            frontier.append(new_sequent_a)
+            visited.add(new_sequent_a)
+          if new_sequent_b not in visited:
+            if new_sequent_b.siblings is not None:
+              new_sequent_b.siblings.add(new_sequent_b)
+            frontier.append(new_sequent_b)
+            visited.add(new_sequent_b)
+          break
+        if isinstance(left_formula, Implies):
+          new_sequent_a = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          new_sequent_b = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent_a.left[left_formula]
+          del new_sequent_b.left[left_formula]
+          new_sequent_a.right[left_formula.formula_a] = old_sequent.left[left_formula]
+          new_sequent_b.left[left_formula.formula_b] = old_sequent.left[left_formula]
+          if new_sequent_a not in visited:
+            if new_sequent_a.siblings is not None:
+              new_sequent_a.siblings.add(new_sequent_a)
+            frontier.append(new_sequent_a)
+            visited.add(new_sequent_a)
+          if new_sequent_b not in visited:
+            if new_sequent_b.siblings is not None:
+              new_sequent_b.siblings.add(new_sequent_b)
+            frontier.append(new_sequent_b)
+            visited.add(new_sequent_b)
+          break
+        if isinstance(left_formula, ForAll):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings or set()
+          )
+          new_sequent.left[left_formula] += 1
+          new_sequent.left[
+            left_formula.formula.replace(
+              left_formula.variable,
+              UnificationTerm(old_sequent.getUnusedUnificationTermName())
+            )
+          ] = 0
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(left_formula, ThereExists):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.left[left_formula]
+          variable = Variable(old_sequent.getUnusedVariableName())
+          new_sequent.left[
+            left_formula.formula.replace(left_formula.variable, variable)
+          ] = old_sequent.left[left_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+
+      # apply a right rule
+      if apply_right:
+        if isinstance(right_formula, Not):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.right[right_formula]
+          new_sequent.left[right_formula.formula] = old_sequent.right[right_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(right_formula, And):
+          new_sequent_a = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          new_sequent_b = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent_a.right[right_formula]
+          del new_sequent_b.right[right_formula]
+          new_sequent_a.right[right_formula.formula_a] = old_sequent.right[right_formula]
+          new_sequent_b.right[right_formula.formula_b] = old_sequent.right[right_formula]
+          if new_sequent_a not in visited:
+            if new_sequent_a.siblings is not None:
+              new_sequent_a.siblings.add(new_sequent_a)
+            frontier.append(new_sequent_a)
+            visited.add(new_sequent_a)
+          if new_sequent_b not in visited:
+            if new_sequent_b.siblings is not None:
+              new_sequent_b.siblings.add(new_sequent_b)
+            frontier.append(new_sequent_b)
+            visited.add(new_sequent_b)
+          break
+        if isinstance(right_formula, Or):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.right[right_formula]
+          new_sequent.right[right_formula.formula_a] = old_sequent.right[right_formula]
+          new_sequent.right[right_formula.formula_b] = old_sequent.right[right_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(right_formula, Implies):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.right[right_formula]
+          new_sequent.left[right_formula.formula_a] = old_sequent.right[right_formula]
+          new_sequent.right[right_formula.formula_b] = old_sequent.right[right_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(right_formula, ForAll):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings
+          )
+          del new_sequent.right[right_formula]
+          variable = Variable(old_sequent.getUnusedVariableName())
+          new_sequent.right[
+            right_formula.formula.replace(right_formula.variable, variable)
+          ] = old_sequent.right[right_formula]
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
+        if isinstance(right_formula, ThereExists):
+          new_sequent = Sequent(
+            old_sequent.left.copy(),
+            old_sequent.right.copy(),
+            old_sequent.siblings or set()
+          )
+          new_sequent.right[right_formula] += 1
+          new_sequent.right[
+            right_formula.formula.replace(
+              right_formula.variable,
+              UnificationTerm(old_sequent.getUnusedUnificationTermName())
+            )
+          ] = 0
+          if new_sequent not in visited:
+            if new_sequent.siblings is not None:
+              new_sequent.siblings.add(new_sequent)
+            frontier.append(new_sequent)
+            visited.add(new_sequent)
+          break
 
   # no more sequents to prove
-  raise SearchResult(True)
-
-# returns True if the sequent is provable
-# returns False or loops forever if the sequent is not provable
-def proveSequent(sequent):
-  g = proofGenerator(sequent)
-  while True:
-    try:
-      g.next()
-    except SearchResult as r:
-      return r.result
+  return True
 
 # returns True if the formula is provable
 # returns False or loops forever if the formula is not provable
 def proveFormula(axioms, formula):
-  return proveSequent(Sequent(axioms, { formula }, None))
-
-# returns True if the formula is provable
-# returns False if its inverse is provable
-# returns None or loops forever if the formula is not provable
-def proveOrDisproveFormula(axioms, formula):
-  g = proofGenerator(Sequent(axioms, { formula }, None))
-  h = proofGenerator(Sequent(axioms, { Not(formula) }, None))
-  while g is not None or h is not None:
-    if g is not None:
-      try:
-        g.next()
-      except SearchResult as r:
-        if r.result:
-          return True
-        else:
-          g = None
-    if h is not None:
-      try:
-        h.next()
-      except SearchResult as r:
-        if r.result:
-          return False
-        else:
-          h = None
-  return None
+  return proveSequent(Sequent({axiom: 0 for axiom in axioms}, { formula: 0 }, None))

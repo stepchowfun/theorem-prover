@@ -311,14 +311,11 @@ def main():
       else:
         formula = parse(tokens)
         check_formula(formula)
-        result = proveOrDisproveFormula(axioms, formula)
-        if result == True:
+        result = proveFormula(axioms, formula)
+        if result:
           print "Formula proven: " + str(formula) + "."
-        if result == False:
-          print "Formula disproven: " + str(formula) + "."
-        if result is None:
-          print "Formula neither provable nor disprovable: " + \
-            str(formula) + "."
+        else:
+          print "Formula unprovable: " + str(formula) + "."
     except Error as e:
       print e.message
     except KeyboardInterrupt:
