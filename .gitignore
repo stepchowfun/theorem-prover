@@ -1,4 +1,6 @@
 # Ignore compiled Python files
 *.pyc
 *.pyo
+
+# Ignore Mac OS X files
 .DS_Store

@@ -5,10 +5,6 @@
 
 import sys
 from rules import *
-try:
-  import readline
-except ImportError:
-  pass
 
 ##############################################################################
 # Command-line interface
