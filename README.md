@@ -35,6 +35,12 @@ Example session:
     > P or not P
     Formula proven: (P ∨ ¬P).
 
+    > P and not P
+    Formula disproven: (P ∧ ¬P).
+
+    > P(x, y)
+    Formula neither provable nor disprovable: P(x, y).
+
     > forall x. P(x) implies (Q(x) implies P(x))
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
