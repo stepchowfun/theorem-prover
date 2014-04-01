@@ -65,9 +65,10 @@ def unify_list(pairs):
 ##############################################################################
 
 class Sequent:
-  def __init__(self, left, right):
+  def __init__(self, left, right, siblings):
     self.left = left
     self.right = right
+    self.siblings = siblings
 
   def fv(self):
     result = set()
@@ -104,11 +105,15 @@ class Sequent:
     return name
 
   def isAxiomaticallyTrue(self):
+    return len(self.left & self.right) > 0
+
+  def getUnifiablePairs(self):
+    pairs = []
     for formula_left in self.left:
       for formula_right in self.right:
         if unify(formula_left, formula_right) is not None:
-          return True
-    return False
+          pairs.append((formula_left, formula_right))
+    return pairs
 
   def __eq__(self, other):
     for formula in self.left:
@@ -126,8 +131,13 @@ class Sequent:
     return True
 
   def __str__(self):
-    return ", ".join([str(formula) for formula in self.left]) + " ⊢ " + \
-      ", ".join([str(formula) for formula in self.right])
+    left_part = ", ".join([str(formula) for formula in self.left])
+    right_part = ", ".join([str(formula) for formula in self.right])
+    if left_part != "":
+      left_part = left_part + " "
+    if right_part != "":
+      right_part = " " + right_part
+    return left_part + "⊢" + right_part
 
   def __hash__(self):
     return hash(str(self))
@@ -158,6 +168,41 @@ def proofGenerator(sequent):
     old_sequent = frontier.pop(0)
     if old_sequent.isAxiomaticallyTrue():
       continue
+
+    # check if this sequent has unification terms
+    if old_sequent.siblings is not None:
+      # get the unifiable pairs for each sibling
+      sibling_pair_lists = [sequent.getUnifiablePairs()
+        for sequent in old_sequent.siblings]
+
+      # check if there is a unifiable pair for each sibling
+      if all([len(pair_list) > 0 for pair_list in sibling_pair_lists]):
+        # iterate through all simultaneous choices of pairs from each sibling
+        unified = False
+        index = [0] * len(sibling_pair_lists)
+        while True:
+          pos = len(sibling_pair_lists) - 1
+          while pos >= 0:
+            index[pos] += 1
+            if index[pos] < len(sibling_pair_lists[pos]):
+              break
+            index[pos] = 0
+            pos -= 1
+          if pos < 0:
+            break
+
+          # attempt to unify
+          if unify_list([sibling_pair_lists[i][index[i]]
+            for i in range(len(sibling_pair_lists))]) is not None:
+            unified = True
+            break
+        if unified:
+          visited |= old_sequent.siblings
+          frontier = [sequent for sequent in frontier if sequent not in old_sequent.siblings]
+          continue
+      else:
+        # unlink this sequent
+        old_sequent.siblings.remove(old_sequent)
     
     # attempt to reduce a formula in the sequent
     reduced = False
@@ -174,11 +219,14 @@ def proofGenerator(sequent):
       if isinstance(formula, Not):
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.left.remove(formula)
         new_sequent.right.add(formula.formula)
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -186,12 +234,15 @@ def proofGenerator(sequent):
       if isinstance(formula, And):
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.left.remove(formula)
         new_sequent.left.add(formula.formula_a)
         new_sequent.left.add(formula.formula_b)
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -199,21 +250,27 @@ def proofGenerator(sequent):
       if isinstance(formula, Or):
         new_sequent_a = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_b = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_a.left.remove(formula)
         new_sequent_b.left.remove(formula)
         new_sequent_a.left.add(formula.formula_a)
         new_sequent_b.left.add(formula.formula_b)
         if new_sequent_a not in visited:
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
           frontier.append(new_sequent_a)
           visited.add(new_sequent_a)
           reduced = True
         if new_sequent_b not in visited:
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
           frontier.append(new_sequent_b)
           visited.add(new_sequent_b)
           reduced = True
@@ -222,21 +279,27 @@ def proofGenerator(sequent):
       if isinstance(formula, Implies):
         new_sequent_a = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_b = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_a.left.remove(formula)
         new_sequent_b.left.remove(formula)
         new_sequent_a.right.add(formula.formula_a)
         new_sequent_b.left.add(formula.formula_b)
         if new_sequent_a not in visited:
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
           frontier.append(new_sequent_a)
           visited.add(new_sequent_a)
           reduced = True
         if new_sequent_b not in visited:
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
           frontier.append(new_sequent_b)
           visited.add(new_sequent_b)
           reduced = True
@@ -246,13 +309,16 @@ def proofGenerator(sequent):
         variable = Variable(old_sequent.getUnusedVariableName())
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.left.remove(formula)
         new_sequent.left.add(
           formula.formula.replace(formula.variable, variable)
         )
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -272,11 +338,14 @@ def proofGenerator(sequent):
       if isinstance(formula, Not):
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.right.remove(formula)
         new_sequent.left.add(formula.formula)
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -284,21 +353,27 @@ def proofGenerator(sequent):
       if isinstance(formula, And):
         new_sequent_a = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_b = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent_a.right.remove(formula)
         new_sequent_b.right.remove(formula)
         new_sequent_a.right.add(formula.formula_a)
         new_sequent_b.right.add(formula.formula_b)
         if new_sequent_a not in visited:
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
           frontier.append(new_sequent_a)
           visited.add(new_sequent_a)
           reduced = True
         if new_sequent_b not in visited:
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
           frontier.append(new_sequent_b)
           visited.add(new_sequent_b)
           reduced = True
@@ -307,12 +382,15 @@ def proofGenerator(sequent):
       if isinstance(formula, Or):
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.right.remove(formula)
         new_sequent.right.add(formula.formula_a)
         new_sequent.right.add(formula.formula_b)
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -320,12 +398,15 @@ def proofGenerator(sequent):
       if isinstance(formula, Implies):
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.right.remove(formula)
         new_sequent.left.add(formula.formula_a)
         new_sequent.right.add(formula.formula_b)
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -334,13 +415,16 @@ def proofGenerator(sequent):
         variable = Variable(old_sequent.getUnusedVariableName())
         new_sequent = Sequent(
           old_sequent.left.copy(),
-          old_sequent.right.copy()
+          old_sequent.right.copy(),
+          old_sequent.siblings
         )
         new_sequent.right.remove(formula)
         new_sequent.right.add(
           formula.formula.replace(formula.variable, variable)
         )
         if new_sequent not in visited:
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
           frontier.append(new_sequent)
           visited.add(new_sequent)
           reduced = True
@@ -398,7 +482,8 @@ def proofGenerator(sequent):
       depths[forall_left_formula] += 1
       new_sequent = Sequent(
         old_sequent.left.copy(),
-        old_sequent.right.copy()
+        old_sequent.right.copy(),
+        old_sequent.siblings or set()
       )
       new_sequent.left.add(
         forall_left_formula.formula.replace(
@@ -407,6 +492,8 @@ def proofGenerator(sequent):
         )
       )
       if new_sequent not in visited:
+        if new_sequent.siblings is not None:
+          new_sequent.siblings.add(new_sequent)
         frontier.append(new_sequent)
         visited.add(new_sequent)
         reduced = True
@@ -414,7 +501,8 @@ def proofGenerator(sequent):
       depths[thereexists_right_formula] += 1
       new_sequent = Sequent(
         old_sequent.left.copy(),
-        old_sequent.right.copy()
+        old_sequent.right.copy(),
+        old_sequent.siblings or set()
       )
       new_sequent.right.add(
         thereexists_right_formula.formula.replace(
@@ -423,6 +511,8 @@ def proofGenerator(sequent):
         )
       )
       if new_sequent not in visited:
+        if new_sequent.siblings is not None:
+          new_sequent.siblings.add(new_sequent)
         frontier.append(new_sequent)
         visited.add(new_sequent)
         reduced = True
@@ -449,15 +539,15 @@ def proveSequent(sequent):
 # returns False or loops forever if the formula is not
 #   provable from the axioms
 def proveFormula(formula):
-  return proveSequent(Sequent(axioms, { formula }))
+  return proveSequent(Sequent(axioms, { formula }, None))
 
 # returns True if the formula is provable from the axioms
 # returns False if its inverse is provable from the axioms
 # returns None or loops forever if its veracity is
 #   independent of the axioms
 def proveOrDisproveFormula(formula):
-  g = proofGenerator(Sequent(axioms, { formula }))
-  h = proofGenerator(Sequent(axioms, { Not(formula) }))
+  g = proofGenerator(Sequent(axioms, { formula }, None))
+  h = proofGenerator(Sequent(axioms, { Not(formula) }, None))
   while g is not None or h is not None:
     if g is not None:
       try:

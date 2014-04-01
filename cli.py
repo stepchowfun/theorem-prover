@@ -68,7 +68,8 @@ def parse(tokens):
   if implies_pos is not None:
     if implies_pos == 0 or implies_pos == len(tokens) - 1:
       raise Error("Missing formula in IMPLIES connective.")
-    return Implies(parse(tokens[0:implies_pos]), parse(tokens[implies_pos+1:]))
+    return Implies(parse(tokens[0:implies_pos]),
+      parse(tokens[implies_pos+1:]))
 
   # Or
   or_pos = None
@@ -233,12 +234,14 @@ def typecheck_formula(formula):
     return
   if isinstance(formula, ForAll):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORALL quantifier: " + str(formula.variable) + ".")
+      raise Error("Invalid bound variable in FORALL quantifier: " +
+        str(formula.variable) + ".")
     typecheck_formula(formula.formula)
     return
   if isinstance(formula, ThereExists):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORSOME quantifier: " + str(formula.variable) + ".")
+      raise Error("Invalid bound variable in FORSOME quantifier: " +
+        str(formula.variable) + ".")
     typecheck_formula(formula.formula)
     return
   raise Error("Invalid formula: " + str(formula) + ".")
