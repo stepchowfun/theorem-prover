@@ -52,6 +52,26 @@ def parse(tokens):
   if len(tokens) == 0:
     raise Error("Empty formula.")
 
+  # ForAll
+  if tokens[0] == "forall":
+    if len(tokens) < 2:
+      raise Error("Missing bound variable in FORALL quantifier.")
+    if len(tokens) < 3 or tokens[2] != ".":
+      raise Error("Missing '.' in FORALL quantifier.")
+    if len(tokens) < 4:
+      raise Error("Missing formula in FORALL quantifier.")
+    return ForAll(parse(tokens[1:2]), parse(tokens[3:]))
+
+  # ThereExists
+  if tokens[0] == "forsome":
+    if len(tokens) < 2:
+      raise Error("Missing bound variable in FORSOME quantifier.")
+    if len(tokens) < 3 or tokens[2] != ".":
+      raise Error("Missing '.' in FORSOME quantifier.")
+    if len(tokens) < 4:
+      raise Error("Missing formula in FORSOME quantifier.")
+    return ThereExists(parse(tokens[1:2]), parse(tokens[3:]))
+
   # Implies
   implies_pos = None
   depth = 0
@@ -112,26 +132,6 @@ def parse(tokens):
     if len(tokens) < 2:
       raise Error("Missing formula in NOT connective.")
     return Not(parse(tokens[1:]))
-
-  # ForAll
-  if tokens[0] == "forall":
-    if len(tokens) < 2:
-      raise Error("Missing bound variable in FORALL quantifier.")
-    if len(tokens) < 3 or tokens[2] != ".":
-      raise Error("Missing '.' in FORALL quantifier.")
-    if len(tokens) < 4:
-      raise Error("Missing formula in FORALL quantifier.")
-    return ForAll(parse(tokens[1:2]), parse(tokens[3:]))
-
-  # ThereExists
-  if tokens[0] == "forsome":
-    if len(tokens) < 2:
-      raise Error("Missing bound variable in FORSOME quantifier.")
-    if len(tokens) < 3 or tokens[2] != ".":
-      raise Error("Missing '.' in FORSOME quantifier.")
-    if len(tokens) < 4:
-      raise Error("Missing formula in FORSOME quantifier.")
-    return ThereExists(parse(tokens[1:2]), parse(tokens[3:]))
 
   # Function
   if tokens[0].isalnum() and tokens[0] not in keywords and \

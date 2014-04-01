@@ -324,7 +324,7 @@ class ForAll:
       self.formula == other.formula
 
   def __str__(self):
-    return "(" + "∀" + str(self.variable) + ": " + str(self.formula) + ")"
+    return "(" + "∀" + str(self.variable) + ". " + str(self.formula) + ")"
 
   def __hash__(self):
     return hash(str(self))
@@ -358,7 +358,7 @@ class ThereExists:
       self.formula == other.formula
 
   def __str__(self):
-    return "(" + "∃" + str(self.variable) + ": " + str(self.formula) + ")"
+    return "(" + "∃" + str(self.variable) + ". " + str(self.formula) + ")"
 
   def __hash__(self):
     return hash(str(self))

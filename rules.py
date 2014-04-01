@@ -3,7 +3,7 @@
 
 # 2014 Stephan Boyer
 
-from axioms import *
+from language import *
 
 ##############################################################################
 # Unification
@@ -166,7 +166,6 @@ def proofGenerator(sequent):
   while len(frontier) > 0:
     # get the next sequent
     old_sequent = frontier.pop(0)
-    print old_sequent
     if old_sequent.isAxiomaticallyTrue():
       continue
 
@@ -537,19 +536,17 @@ def proveSequent(sequent):
     except SearchResult as r:
       return r.result
 
-# returns True if the formula is provable from the axioms
-# returns False or loops forever if the formula is not
-#   provable from the axioms
+# returns True if the formula is provable
+# returns False or loops forever if the formula is not provable
 def proveFormula(formula):
-  return proveSequent(Sequent(axioms, { formula }, None))
+  return proveSequent(Sequent(set(), { formula }, None))
 
-# returns True if the formula is provable from the axioms
-# returns False if its inverse is provable from the axioms
-# returns None or loops forever if its veracity is
-#   independent of the axioms
+# returns True if the formula is provable
+# returns False if its inverse is provable
+# returns None or loops forever if the formula is not provable
 def proveOrDisproveFormula(formula):
-  g = proofGenerator(Sequent(axioms, { formula }, None))
-  h = proofGenerator(Sequent(axioms, { Not(formula) }, None))
+  g = proofGenerator(Sequent(set(), { formula }, None))
+  h = proofGenerator(Sequent(set(), { Not(formula) }, None))
   while g is not None or h is not None:
     if g is not None:
       try:
