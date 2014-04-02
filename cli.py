@@ -203,9 +203,8 @@ def parse(tokens):
 
   # Function
   if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
-    len(tokens) > 1 and not any([c.isupper() for c in tokens[0]]):
-    if len(tokens) < 3 or tokens[1] != "(":
-      raise Error("Missing function argument list.")
+    len(tokens) > 1 and not any([c.isupper() for c in tokens[0]]) and \
+    tokens[1] == "(":
     if tokens[-1] != ")":
       raise Error("Missing ')' after function argument list.")
     name = tokens[0]
@@ -236,9 +235,8 @@ def parse(tokens):
     len(tokens) == 1 and any([c.isupper() for c in tokens[0]]):
     return Predicate(tokens[0], [])
   if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
-    len(tokens) > 1 and any([c.isupper() for c in tokens[0]]):
-    if len(tokens) < 3 or tokens[1] != "(":
-      raise Error("Missing predicate argument list.")
+    len(tokens) > 1 and any([c.isupper() for c in tokens[0]]) and \
+    tokens[1] == "(":
     if tokens[-1] != ")":
       raise Error("Missing ')' after predicate argument list.")
     name = tokens[0]
@@ -276,6 +274,8 @@ def parse(tokens):
     if len(tokens) == 2:
       raise Error("Missing formula in parenthetical group.")
     return parse(tokens[1:-1])
+
+  raise Error("Unable to parse: %s..." % tokens[0])
 
 def typecheck_term(term):
   if isinstance(term, Variable):
