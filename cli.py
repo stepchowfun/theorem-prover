@@ -59,11 +59,9 @@ def parse(tokens):
         break
     if dot_pos is None:
       raise Error("Missing '.' in FORALL quantifier.")
-    if dot_pos == 1:
-      raise Error("Missing variable in FORALL quantifier.")
     args = []
     i = 1
-    while i < dot_pos:
+    while i <= dot_pos:
       end = dot_pos
       depth = 0
       for j in range(i, dot_pos):
@@ -100,7 +98,7 @@ def parse(tokens):
       raise Error("Missing variable in FORSOME quantifier.")
     args = []
     i = 1
-    while i < dot_pos:
+    while i <= dot_pos:
       end = dot_pos
       depth = 0
       for j in range(i, dot_pos):
