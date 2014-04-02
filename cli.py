@@ -49,7 +49,7 @@ def parse(tokens):
     raise Error("Empty formula.")
 
   # ForAll
-  if tokens[0] == "forall":
+  if tokens[0].lower() == "forall":
     dot_pos = None
     for i in range(1, len(tokens)):
       if tokens[i] == ".":
@@ -86,7 +86,7 @@ def parse(tokens):
     return formula
 
   # ThereExists
-  if tokens[0] == "forsome":
+  if tokens[0].lower() == "forsome":
     dot_pos = None
     for i in range(1, len(tokens)):
       if tokens[i] == ".":
@@ -136,10 +136,16 @@ def parse(tokens):
       implies_pos = i
       break
   if implies_pos is not None:
-    if implies_pos == 0 or implies_pos == len(tokens) - 1:
-      raise Error("Missing formula in IMPLIES connective.")
-    return Implies(parse(tokens[0:implies_pos]),
-      parse(tokens[implies_pos+1:]))
+    quantifier_in_left = False
+    for i in range(implies_pos):
+      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+        quantifier_in_left = True
+        break
+    if not quantifier_in_left:
+      if implies_pos == 0 or implies_pos == len(tokens) - 1:
+        raise Error("Missing formula in IMPLIES connective.")
+      return Implies(parse(tokens[0:implies_pos]),
+        parse(tokens[implies_pos+1:]))
 
   # Or
   or_pos = None
@@ -155,9 +161,15 @@ def parse(tokens):
       or_pos = i
       break
   if or_pos is not None:
-    if or_pos == 0 or or_pos == len(tokens) - 1:
-      raise Error("Missing formula in OR connective.")
-    return Or(parse(tokens[0:or_pos]), parse(tokens[or_pos+1:]))
+    quantifier_in_left = False
+    for i in range(or_pos):
+      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+        quantifier_in_left = True
+        break
+    if not quantifier_in_left:
+      if or_pos == 0 or or_pos == len(tokens) - 1:
+        raise Error("Missing formula in OR connective.")
+      return Or(parse(tokens[0:or_pos]), parse(tokens[or_pos+1:]))
 
   # And
   and_pos = None
@@ -173,12 +185,18 @@ def parse(tokens):
       and_pos = i
       break
   if and_pos is not None:
-    if and_pos == 0 or and_pos == len(tokens) - 1:
-      raise Error("Missing formula in AND connective.")
-    return And(parse(tokens[0:and_pos]), parse(tokens[and_pos+1:]))
+    quantifier_in_left = False
+    for i in range(and_pos):
+      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+        quantifier_in_left = True
+        break
+    if not quantifier_in_left:
+      if and_pos == 0 or and_pos == len(tokens) - 1:
+        raise Error("Missing formula in AND connective.")
+      return And(parse(tokens[0:and_pos]), parse(tokens[and_pos+1:]))
 
   # Not
-  if tokens[0] == "not":
+  if tokens[0].lower() == "not":
     if len(tokens) < 2:
       raise Error("Missing formula in NOT connective.")
     return Not(parse(tokens[1:]))
