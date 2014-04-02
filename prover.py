@@ -96,9 +96,6 @@ class Sequent:
       name = prefix + str(index)
     return name
 
-  def isAxiomaticallyTrue(self):
-    return len(set(self.left.keys()) & set(self.right.keys())) > 0
-
   def getUnifiablePairs(self):
     pairs = []
     for formula_left in self.left:
@@ -159,7 +156,7 @@ def proveSequent(sequent):
     print "%s. %s" % (old_sequent.depth, old_sequent)
 
     # check if this sequent is axiomatically true without unification
-    if old_sequent.isAxiomaticallyTrue():
+    if len(set(old_sequent.left.keys()) & set(old_sequent.right.keys())) > 0:
       continue
 
     # check if this sequent has unification terms
