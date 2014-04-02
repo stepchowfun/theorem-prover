@@ -87,22 +87,13 @@ class Sequent:
       result |= formula.ft()
     return result
 
-  def getUnusedVariableName(self):
-    fv = self.fv()
+  def getVariableName(self, prefix):
+    fv = self.fv() | self.ft()
     index = 1
-    name = "v" + str(index)
-    while Variable(name) in fv:
+    name = prefix + str(index)
+    while Variable(name) in fv or UnificationTerm(name) in fv:
       index += 1
-      name = "v" + str(index)
-    return name
-
-  def getUnusedUnificationTermName(self):
-    fv = self.ft()
-    index = 1
-    name = "t" + str(index)
-    while UnificationTerm(name) in fv:
-      index += 1
-      name = "t" + str(index)
+      name = prefix + str(index)
     return name
 
   def isAxiomaticallyTrue(self):
@@ -342,7 +333,7 @@ def proveSequent(sequent):
           new_sequent.left[left_formula] += 1
           formula = left_formula.formula.replace(
             left_formula.variable,
-            UnificationTerm(old_sequent.getUnusedUnificationTermName())
+            UnificationTerm(old_sequent.getVariableName("t"))
           )
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.left[formula] = new_sequent.left[left_formula]
@@ -360,7 +351,7 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.left[left_formula]
-          variable = Variable(old_sequent.getUnusedVariableName())
+          variable = Variable(old_sequent.getVariableName("v"))
           formula = left_formula.formula.replace(left_formula.variable, variable)
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.left[formula] = old_sequent.left[left_formula] + 1
@@ -456,7 +447,7 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.right[right_formula]
-          variable = Variable(old_sequent.getUnusedVariableName())
+          variable = Variable(old_sequent.getVariableName("v"))
           formula = right_formula.formula.replace(right_formula.variable, variable)
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.right[formula] = old_sequent.right[right_formula] + 1
@@ -476,7 +467,7 @@ def proveSequent(sequent):
           new_sequent.right[right_formula] += 1
           formula = right_formula.formula.replace(
             right_formula.variable,
-            UnificationTerm(old_sequent.getUnusedUnificationTermName())
+            UnificationTerm(old_sequent.getVariableName("t"))
           )
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.right[formula] = new_sequent.right[right_formula]
