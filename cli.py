@@ -336,7 +336,7 @@ def main():
   print "  axioms              (list axioms)"
   print "  lemmas              (list lemmas)"
   print "  axiom <formula>     (add an axiom)"
-  print "  lemma <formula>     (add a lemma)"
+  print "  lemma <formula>     (prove and add a lemma)"
   print "  remove <formula>    (remove an axiom or lemma)"
   print "  reset               (remove all axioms and lemmas)"
 
@@ -373,6 +373,10 @@ def main():
           for lemma in bad_lemmas:
             del lemmas[lemma]
           print "Axiom removed: %s." % formula
+          if len(bad_lemmas) > 0:
+            print "These lemmas were proven using that axiom and were also removed:"
+            for lemma in bad_lemmas:
+              print "  %s" % lemma
         elif formula in lemmas:
           del lemmas[formula]
           print "Lemma removed: %s." % formula
@@ -386,7 +390,7 @@ def main():
           print lemma
       elif len(tokens) == 1 and tokens[0] == "reset":
         axioms = set()
-        lemmas = set()
+        lemmas = {}
       else:
         formula = parse(tokens)
         check_formula(formula)

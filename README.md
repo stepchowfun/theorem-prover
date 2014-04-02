@@ -26,7 +26,7 @@ To get started, run `cli.py`:
       axioms              (list axioms)
       lemmas              (list lemmas)
       axiom <formula>     (add an axiom)
-      lemma <formula>     (add a lemma)
+      lemma <formula>     (prove and add a lemma)
       remove <formula>    (remove an axiom or lemma)
       reset               (remove all axioms and lemmas)
 
@@ -56,16 +56,24 @@ Example session:
     3. Q(v1), P(v1) ⊢ P(v1)
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
-    > add forall x. Equals(x, x)
+    > axiom forall x. Equals(x, x)
     Axiom added: (∀x. Equals(x, x)).
 
     > axioms
     (∀x. Equals(x, x))
 
-    > Equals(a, a)
+    > lemma Equals(a, a)
     0. (∀x. Equals(x, x)) ⊢ Equals(a, a)
     1. Equals(t1, t1), (∀x. Equals(x, x)) ⊢ Equals(a, a)
-    Formula proven: Equals(a, a).
+    Lemma proven: Equals(a, a).
+
+    > lemmas
+    Equals(a, a)
+
+    > remove forall x. Equals(x, x)
+    Axiom removed: (∀x. Equals(x, x)).
+    These lemmas were proven using that axiom and were also removed:
+      Equals(a, a)
 
 Copyright (C) 2014 Stephan Boyer
 
