@@ -66,7 +66,7 @@ def parse(tokens):
     while i < dot_pos:
       end = dot_pos
       depth = 0
-      for j in range(i + 1, dot_pos):
+      for j in range(i, dot_pos):
         if tokens[j] == "(":
           depth += 1
           continue
@@ -103,7 +103,7 @@ def parse(tokens):
     while i < dot_pos:
       end = dot_pos
       depth = 0
-      for j in range(i + 1, dot_pos):
+      for j in range(i, dot_pos):
         if tokens[j] == "(":
           depth += 1
           continue
