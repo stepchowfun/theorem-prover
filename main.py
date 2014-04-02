@@ -328,14 +328,14 @@ def typecheck_formula(formula):
     return
   if isinstance(formula, ForAll):
     if not isinstance(formula.variable, Variable):
-      raise InvalidInputError("Invalid bound variable in FORALL quantifier: %s." % \
-        formula.variable)
+      raise InvalidInputError("Invalid bound variable in " \
+        "FORALL quantifier: %s." % formula.variable)
     typecheck_formula(formula.formula)
     return
   if isinstance(formula, ThereExists):
     if not isinstance(formula.variable, Variable):
-      raise InvalidInputError("Invalid bound variable in FORSOME quantifier: %s." % \
-        formula.variable)
+      raise InvalidInputError("Invalid bound variable in " \
+        "FORSOME quantifier: %s." % formula.variable)
     typecheck_formula(formula.formula)
     return
   raise InvalidInputError("Invalid formula: %s." % formula)
