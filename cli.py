@@ -334,34 +334,59 @@ def main():
     "are also available for manipulating axioms:"
   print ""
   print "  axioms              (list axioms)"
-  print "  add <formula>       (add an axiom)"
-  print "  remove <formula>    (remove an axiom)"
-  print "  reset               (remove all axioms)"
+  print "  lemmas              (list lemmas)"
+  print "  axiom <formula>     (add an axiom)"
+  print "  lemma <formula>     (add a lemma)"
+  print "  remove <formula>    (remove an axiom or lemma)"
+  print "  reset               (remove all axioms and lemmas)"
 
   axioms = set()
+  lemmas = {}
 
   while True:
     try:
       inp = raw_input("\n> ")
       tokens = lexer(inp)
-      if len(tokens) > 0 and tokens[0] == "add":
+      if len(tokens) > 0 and tokens[0] == "axiom":
         formula = parse(tokens[1:])
         check_formula(formula)
         axioms.add(formula)
         print "Axiom added: %s." % formula
+      elif len(tokens) > 0 and tokens[0] == "lemma":
+        formula = parse(tokens[1:])
+        check_formula(formula)
+        result = proveFormula(axioms, formula)
+        if result:
+          lemmas[formula] = axioms.copy()
+          print "Lemma added: %s." % formula
+        else:
+          print "Formula unprovable: %s." % formula
       elif len(tokens) > 0 and tokens[0] == "remove":
         formula = parse(tokens[1:])
         check_formula(formula)
         if formula in axioms:
           axioms.remove(formula)
+          bad_lemmas = []
+          for lemma, dependent_axioms in lemmas.items():
+            if formula in dependent_axioms:
+              bad_lemmas.append(lemma)
+          for lemma in bad_lemmas:
+            del lemmas[lemma]
           print "Axiom removed: %s." % formula
+        elif formula in lemmas:
+          del lemmas[formula]
+          print "Lemma removed: %s." % formula
         else:
           print "Not an axiom: %s." % formula
       elif len(tokens) == 1 and tokens[0] == "axioms":
         for axiom in axioms:
           print axiom
+      elif len(tokens) == 1 and tokens[0] == "lemmas":
+        for lemma in lemmas:
+          print lemma
       elif len(tokens) == 1 and tokens[0] == "reset":
         axioms = set()
+        lemmas = set()
       else:
         formula = parse(tokens)
         check_formula(formula)
