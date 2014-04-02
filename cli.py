@@ -211,23 +211,24 @@ def parse(tokens):
     name = tokens[0]
     args = []
     i = 2
-    while i < len(tokens) - 1:
-      end = len(tokens) - 1
-      depth = 0
-      for j in range(i + 1, len(tokens) - 1):
-        if tokens[j] == "(":
-          depth += 1
-          continue
-        if tokens[j] == ")":
-          depth -= 1
-          continue
-        if depth == 0 and tokens[j] == ",":
-          end = j
-          break
-      if i == end:
-        raise Error("Missing function argument.")
-      args.append(parse(tokens[i:end]))
-      i = end + 1
+    if i < len(tokens) - 1:
+      while i <= len(tokens) - 1:
+        end = len(tokens) - 1
+        depth = 0
+        for j in range(i, len(tokens) - 1):
+          if tokens[j] == "(":
+            depth += 1
+            continue
+          if tokens[j] == ")":
+            depth -= 1
+            continue
+          if depth == 0 and tokens[j] == ",":
+            end = j
+            break
+        if i == end:
+          raise Error("Missing function argument.")
+        args.append(parse(tokens[i:end]))
+        i = end + 1
     return Function(name, args)
 
   # Predicate
@@ -243,23 +244,24 @@ def parse(tokens):
     name = tokens[0]
     args = []
     i = 2
-    while i < len(tokens) - 1:
-      end = len(tokens) - 1
-      depth = 0
-      for j in range(i + 1, len(tokens) - 1):
-        if tokens[j] == "(":
-          depth += 1
-          continue
-        if tokens[j] == ")":
-          depth -= 1
-          continue
-        if depth == 0 and tokens[j] == ",":
-          end = j
-          break
-      if i == end:
-        raise Error("Missing predicate argument.")
-      args.append(parse(tokens[i:end]))
-      i = end + 1
+    if i < len(tokens) - 1:
+      while i <= len(tokens) - 1:
+        end = len(tokens) - 1
+        depth = 0
+        for j in range(i, len(tokens) - 1):
+          if tokens[j] == "(":
+            depth += 1
+            continue
+          if tokens[j] == ")":
+            depth -= 1
+            continue
+          if depth == 0 and tokens[j] == ",":
+            end = j
+            break
+        if i == end:
+          raise Error("Missing predicate argument.")
+        args.append(parse(tokens[i:end]))
+        i = end + 1
     return Predicate(name, args)
 
   # Variable
