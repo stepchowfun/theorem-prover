@@ -56,7 +56,7 @@ Example session:
     3. Q(v1), P(v1) ⊢ P(v1)
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
-    > forsome x. (P(x) implies forall y. P(y)) 
+    > forsome x. (P(x) implies forall y. P(y))
     0. ⊢ (∃x. (P(x) → (∀y. P(y))))
     1. ⊢ (P(t1) → (∀y. P(y))), (∃x. (P(x) → (∀y. P(y))))
     2. P(t1) ⊢ (∀y. P(y)), (∃x. (P(x) → (∀y. P(y))))
