@@ -50,23 +50,77 @@ def parse(tokens):
 
   # ForAll
   if tokens[0] == "forall":
-    if len(tokens) < 2:
-      raise Error("Missing bound variable in FORALL quantifier.")
-    if len(tokens) < 3 or tokens[2] != ".":
+    dot_pos = None
+    for i in range(1, len(tokens)):
+      if tokens[i] == ".":
+        dot_pos = i
+        break
+    if dot_pos is None:
       raise Error("Missing '.' in FORALL quantifier.")
-    if len(tokens) < 4:
+    if dot_pos == 1:
+      raise Error("Missing variable in FORALL quantifier.")
+    args = []
+    i = 1
+    while i < dot_pos:
+      end = dot_pos
+      depth = 0
+      for j in range(i + 1, dot_pos):
+        if tokens[j] == "(":
+          depth += 1
+          continue
+        if tokens[j] == ")":
+          depth -= 1
+          continue
+        if depth == 0 and tokens[j] == ",":
+          end = j
+          break
+      if i == end:
+        raise Error("Missing variable in FORALL quantifier.")
+      args.append(parse(tokens[i:end]))
+      i = end + 1
+    if len(tokens) == dot_pos + 1:
       raise Error("Missing formula in FORALL quantifier.")
-    return ForAll(parse(tokens[1:2]), parse(tokens[3:]))
+    formula = parse(tokens[dot_pos + 1:])
+    for variable in reversed(args):
+      formula = ForAll(variable, formula)
+    return formula
 
   # ThereExists
   if tokens[0] == "forsome":
-    if len(tokens) < 2:
-      raise Error("Missing bound variable in FORSOME quantifier.")
-    if len(tokens) < 3 or tokens[2] != ".":
+    dot_pos = None
+    for i in range(1, len(tokens)):
+      if tokens[i] == ".":
+        dot_pos = i
+        break
+    if dot_pos is None:
       raise Error("Missing '.' in FORSOME quantifier.")
-    if len(tokens) < 4:
+    if dot_pos == 1:
+      raise Error("Missing variable in FORSOME quantifier.")
+    args = []
+    i = 1
+    while i < dot_pos:
+      end = dot_pos
+      depth = 0
+      for j in range(i + 1, dot_pos):
+        if tokens[j] == "(":
+          depth += 1
+          continue
+        if tokens[j] == ")":
+          depth -= 1
+          continue
+        if depth == 0 and tokens[j] == ",":
+          end = j
+          break
+      if i == end:
+        raise Error("Missing variable in FORSOME quantifier.")
+      args.append(parse(tokens[i:end]))
+      i = end + 1
+    if len(tokens) == dot_pos + 1:
       raise Error("Missing formula in FORSOME quantifier.")
-    return ThereExists(parse(tokens[1:2]), parse(tokens[3:]))
+    formula = parse(tokens[dot_pos + 1:])
+    for variable in reversed(args):
+      formula = ThereExists(variable, formula)
+    return formula
 
   # Implies
   implies_pos = None
