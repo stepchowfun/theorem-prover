@@ -33,21 +33,36 @@ To get started, run `cli.py`:
 Example session:
 
     > P or not P
+    0. ⊢ (P ∨ ¬P)
+    1. ⊢ P, ¬P
+    2. P ⊢ P
     Formula proven: (P ∨ ¬P).
 
     > P and not P
+    0. ⊢ (P ∧ ¬P)
+    1. ⊢ P
     Formula unprovable: (P ∧ ¬P).
 
     > P(x, y)
+    0. ⊢ P(x, y)
     Formula unprovable: P(x, y).
 
     > forall x. P(x) implies (Q(x) implies P(x))
+    0. ⊢ (∀x. (P(x) → (Q(x) → P(x))))
+    1. ⊢ (P(v1) → (Q(v1) → P(v1)))
+    2. P(v1) ⊢ (Q(v1) → P(v1))
+    3. Q(v1), P(v1) ⊢ P(v1)
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
     > add forall x. Equals(x, x)
     Axiom added: (∀x. Equals(x, x)).
 
+    > axioms
+    (∀x. Equals(x, x))
+
     > Equals(a, a)
+    0. (∀x. Equals(x, x)) ⊢ Equals(a, a)
+    1. Equals(t1, t1), (∀x. Equals(x, x)) ⊢ Equals(a, a)
     Formula proven: Equals(a, a).
 
 Copyright (C) 2014 Stephan Boyer
