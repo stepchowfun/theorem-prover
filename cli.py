@@ -43,13 +43,15 @@ def lexer(inp):
 def parse(tokens):
   # keywords
   keywords = ["not", "implies", "and", "or", "forall", "forsome"]
+  tokens = [(token.lower() if token in keywords else token)
+    for token in tokens]
 
   # empty formula
   if len(tokens) == 0:
     raise Error("Empty formula.")
 
   # ForAll
-  if tokens[0].lower() == "forall":
+  if tokens[0] == "forall":
     dot_pos = None
     for i in range(1, len(tokens)):
       if tokens[i] == ".":
@@ -86,7 +88,7 @@ def parse(tokens):
     return formula
 
   # ThereExists
-  if tokens[0].lower() == "forsome":
+  if tokens[0] == "forsome":
     dot_pos = None
     for i in range(1, len(tokens)):
       if tokens[i] == ".":
@@ -132,13 +134,13 @@ def parse(tokens):
     if tokens[i] == ")":
       depth -= 1
       continue
-    if depth == 0 and tokens[i].lower() == "implies":
+    if depth == 0 and tokens[i] == "implies":
       implies_pos = i
       break
   if implies_pos is not None:
     quantifier_in_left = False
     for i in range(implies_pos):
-      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+      if tokens[i] == "forall" or tokens[i] == "forsome":
         quantifier_in_left = True
         break
     if not quantifier_in_left:
@@ -157,13 +159,13 @@ def parse(tokens):
     if tokens[i] == ")":
       depth -= 1
       continue
-    if depth == 0 and tokens[i].lower() == "or":
+    if depth == 0 and tokens[i] == "or":
       or_pos = i
       break
   if or_pos is not None:
     quantifier_in_left = False
     for i in range(or_pos):
-      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+      if tokens[i] == "forall" or tokens[i] == "forsome":
         quantifier_in_left = True
         break
     if not quantifier_in_left:
@@ -181,13 +183,13 @@ def parse(tokens):
     if tokens[i] == ")":
       depth -= 1
       continue
-    if depth == 0 and tokens[i].lower() == "and":
+    if depth == 0 and tokens[i] == "and":
       and_pos = i
       break
   if and_pos is not None:
     quantifier_in_left = False
     for i in range(and_pos):
-      if tokens[i].lower() == "forall" or tokens[i].lower() == "forsome":
+      if tokens[i] == "forall" or tokens[i] == "forsome":
         quantifier_in_left = True
         break
     if not quantifier_in_left:
@@ -196,7 +198,7 @@ def parse(tokens):
       return And(parse(tokens[0:and_pos]), parse(tokens[and_pos+1:]))
 
   # Not
-  if tokens[0].lower() == "not":
+  if tokens[0] == "not":
     if len(tokens) < 2:
       raise Error("Missing formula in NOT connective.")
     return Not(parse(tokens[1:]))
@@ -364,13 +366,28 @@ def main():
   while True:
     try:
       inp = raw_input("\n> ")
-      tokens = lexer(inp)
-      if len(tokens) > 0 and tokens[0].lower() == "axiom":
+      commands = ["axiom", "lemma", "axioms", "lemmas", "remove", "reset"]
+      tokens = [(token.lower() if token in commands else token)
+        for token in lexer(inp)]
+      for token in tokens[1:]:
+        if token in commands:
+          raise Error("Unexpected keyword: %s." % token)
+      if len(tokens) > 0 and tokens[0] == "axioms":
+        if len(tokens) > 1:
+          raise Error("Unexpected: %s." % tokens[1])
+        for axiom in axioms:
+          print axiom
+      elif len(tokens) > 0 and tokens[0] == "lemmas":
+        if len(tokens) > 1:
+          raise Error("Unexpected: %s." % tokens[1])
+        for lemma in lemmas:
+          print lemma
+      elif len(tokens) > 0 and tokens[0] == "axiom":
         formula = parse(tokens[1:])
         check_formula(formula)
         axioms.add(formula)
         print "Axiom added: %s." % formula
-      elif len(tokens) > 0 and tokens[0].lower() == "lemma":
+      elif len(tokens) > 0 and tokens[0] == "lemma":
         formula = parse(tokens[1:])
         check_formula(formula)
         result = proveFormula(axioms | set(lemmas.keys()), formula)
@@ -379,7 +396,7 @@ def main():
           print "Lemma proven: %s." % formula
         else:
           print "Lemma unprovable: %s." % formula
-      elif len(tokens) > 0 and tokens[0].lower() == "remove":
+      elif len(tokens) > 0 and tokens[0] == "remove":
         formula = parse(tokens[1:])
         check_formula(formula)
         if formula in axioms:
@@ -406,13 +423,9 @@ def main():
           print "Lemma removed: %s." % formula
         else:
           print "Not an axiom: %s." % formula
-      elif len(tokens) == 1 and tokens[0].lower() == "axioms":
-        for axiom in axioms:
-          print axiom
-      elif len(tokens) == 1 and tokens[0].lower() == "lemmas":
-        for lemma in lemmas:
-          print lemma
-      elif len(tokens) == 1 and tokens[0].lower() == "reset":
+      elif len(tokens) > 0 and tokens[0] == "reset":
+        if len(tokens) > 1:
+          raise Error("Unexpected: %s." % tokens[1])
         axioms = set()
         lemmas = {}
       else:
