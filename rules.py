@@ -341,7 +341,7 @@ def proveSequent(sequent):
           )
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.left[formula] = new_sequent.left[left_formula]
-          if new_sequent not in visited:
+          if new_sequent not in visited or formula == left_formula.formula:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
             frontier.append(new_sequent)
@@ -475,7 +475,7 @@ def proveSequent(sequent):
           )
           formula.setDeepTime(old_sequent.depth + 1)
           new_sequent.right[formula] = new_sequent.right[right_formula]
-          if new_sequent not in visited:
+          if new_sequent not in visited or formula == right_formula.formula:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
             frontier.append(new_sequent)
