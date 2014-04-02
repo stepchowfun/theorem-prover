@@ -44,7 +44,7 @@ Example session:
     > forall x. P(x) implies (Q(x) implies P(x))
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
-    > add forall x. Equals(x, x)    
+    > add forall x. Equals(x, x)
     Axiom added: (∀x. Equals(x, x)).
 
     > Equals(a, a)
