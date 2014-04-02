@@ -358,9 +358,9 @@ def main():
         result = proveFormula(axioms, formula)
         if result:
           lemmas[formula] = axioms.copy()
-          print "Lemma added: %s." % formula
+          print "Lemma proven: %s." % formula
         else:
-          print "Formula unprovable: %s." % formula
+          print "Lemma unprovable: %s." % formula
       elif len(tokens) > 0 and tokens[0] == "remove":
         formula = parse(tokens[1:])
         check_formula(formula)

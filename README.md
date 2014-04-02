@@ -24,9 +24,11 @@ To get started, run `cli.py`:
     Enter formulae at the prompt. The following commands are also available for manipulating axioms:
 
       axioms              (list axioms)
-      add <formula>       (add an axiom)
-      remove <formula>    (remove an axiom)
-      reset               (remove all axioms)
+      lemmas              (list lemmas)
+      axiom <formula>     (add an axiom)
+      lemma <formula>     (add a lemma)
+      remove <formula>    (remove an axiom or lemma)
+      reset               (remove all axioms and lemmas)
 
     >
 
