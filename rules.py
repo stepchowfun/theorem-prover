@@ -165,7 +165,7 @@ def proveSequent(sequent):
   while len(frontier) > 0:
     # get the next sequent
     old_sequent = frontier.pop(0)
-    print old_sequent
+    print "%s. %s" % (old_sequent.depth, old_sequent)
 
     # check if this sequent is axiomatically true without unification
     if old_sequent.isAxiomaticallyTrue():
