@@ -202,7 +202,7 @@ def parse(tokens):
     return Not(parse(tokens[1:]))
 
   # Function
-  if tokens[0].isalnum() and tokens[0] not in keywords and \
+  if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
     len(tokens) > 1 and not any([c.isupper() for c in tokens[0]]):
     if len(tokens) < 3 or tokens[1] != "(":
       raise Error("Missing function argument list.")
@@ -231,10 +231,10 @@ def parse(tokens):
     return Function(name, args)
 
   # Predicate
-  if tokens[0].isalnum() and tokens[0] not in keywords and \
+  if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
     len(tokens) == 1 and any([c.isupper() for c in tokens[0]]):
     return Predicate(tokens[0], [])
-  if tokens[0].isalnum() and tokens[0] not in keywords and \
+  if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
     len(tokens) > 1 and any([c.isupper() for c in tokens[0]]):
     if len(tokens) < 3 or tokens[1] != "(":
       raise Error("Missing predicate argument list.")
@@ -263,7 +263,7 @@ def parse(tokens):
     return Predicate(name, args)
 
   # Variable
-  if tokens[0].isalnum() and tokens[0] not in keywords and \
+  if tokens[0].isalnum() and tokens[0].lower() not in keywords and \
     len(tokens) == 1 and not any([c.isupper() for c in tokens[0]]):
     return Variable(tokens[0])
 
@@ -365,12 +365,12 @@ def main():
     try:
       inp = raw_input("\n> ")
       tokens = lexer(inp)
-      if len(tokens) > 0 and tokens[0] == "axiom":
+      if len(tokens) > 0 and tokens[0].lower() == "axiom":
         formula = parse(tokens[1:])
         check_formula(formula)
         axioms.add(formula)
         print "Axiom added: %s." % formula
-      elif len(tokens) > 0 and tokens[0] == "lemma":
+      elif len(tokens) > 0 and tokens[0].lower() == "lemma":
         formula = parse(tokens[1:])
         check_formula(formula)
         result = proveFormula(axioms | set(lemmas.keys()), formula)
@@ -379,7 +379,7 @@ def main():
           print "Lemma proven: %s." % formula
         else:
           print "Lemma unprovable: %s." % formula
-      elif len(tokens) > 0 and tokens[0] == "remove":
+      elif len(tokens) > 0 and tokens[0].lower() == "remove":
         formula = parse(tokens[1:])
         check_formula(formula)
         if formula in axioms:
@@ -406,13 +406,13 @@ def main():
           print "Lemma removed: %s." % formula
         else:
           print "Not an axiom: %s." % formula
-      elif len(tokens) == 1 and tokens[0] == "axioms":
+      elif len(tokens) == 1 and tokens[0].lower() == "axioms":
         for axiom in axioms:
           print axiom
-      elif len(tokens) == 1 and tokens[0] == "lemmas":
+      elif len(tokens) == 1 and tokens[0].lower() == "lemmas":
         for lemma in lemmas:
           print lemma
-      elif len(tokens) == 1 and tokens[0] == "reset":
+      elif len(tokens) == 1 and tokens[0].lower() == "reset":
         axioms = set()
         lemmas = {}
       else:
