@@ -374,7 +374,8 @@ def main():
             del lemmas[lemma]
           print "Axiom removed: %s." % formula
           if len(bad_lemmas) > 0:
-            print "These lemmas were proven using that axiom and were also removed:"
+            print "These lemmas were proven using that " \
+              "axiom and were also removed:"
             for lemma in bad_lemmas:
               print "  %s" % lemma
         elif formula in lemmas:
