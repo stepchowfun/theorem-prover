@@ -72,7 +72,7 @@ Example session:
 
     > remove forall x. Equals(x, x)
     Axiom removed: (∀x. Equals(x, x)).
-    These lemmas were proven using that axiom and were also removed:
+    This lemma was proven using that axiom and was also removed:
       Equals(a, a)
 
 Copyright (C) 2014 Stephan Boyer
