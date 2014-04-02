@@ -180,13 +180,13 @@ def proveSequent(sequent):
       # check if there is a unifiable pair for each sibling
       if all([len(pair_list) > 0 for pair_list in sibling_pair_lists]):
         # iterate through all simultaneous choices of pairs from each sibling
-        unified = False
+        substitution = None
         index = [0] * len(sibling_pair_lists)
         while True:
           # attempt to unify at the index
-          if unify_list([sibling_pair_lists[i][index[i]]
-            for i in range(len(sibling_pair_lists))]) is not None:
-            unified = True
+          substitution = unify_list([sibling_pair_lists[i][index[i]]
+            for i in range(len(sibling_pair_lists))])
+          if substitution is not None:
             break
 
           # increment the index
@@ -199,7 +199,12 @@ def proveSequent(sequent):
             pos -= 1
           if pos < 0:
             break
-        if unified:
+        if substitution is not None:
+          for sequent in old_sequent.siblings:
+            if sequent != old_sequent:
+              print "%s. %s" % (sequent.depth, sequent)
+          for k, v in substitution.items():
+            print "  %s = %s" % (k, v)
           visited |= old_sequent.siblings
           frontier = [sequent for sequent in frontier
             if sequent not in old_sequent.siblings]
