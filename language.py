@@ -12,10 +12,10 @@ class Variable:
     self.name = name
     self.time = 0
 
-  def fv(self):
+  def freeVariables(self):
     return { self }
 
-  def ft(self):
+  def freeUnificationTerms(self):
     return set()
 
   def replace(self, old, new):
@@ -26,7 +26,7 @@ class Variable:
   def occurs(self, unification_term):
     return False
 
-  def setDeepTime(self, time):
+  def setInstantiationTime(self, time):
     self.time = time
 
   def __eq__(self, other):
@@ -45,10 +45,10 @@ class UnificationTerm:
     self.name = name
     self.time = 0
 
-  def fv(self):
+  def freeVariables(self):
     return set()
 
-  def ft(self):
+  def freeUnificationTerms(self):
     return { self }
 
   def replace(self, old, new):
@@ -59,7 +59,7 @@ class UnificationTerm:
   def occurs(self, unification_term):
     return self == unification_term
 
-  def setDeepTime(self, time):
+  def setInstantiationTime(self, time):
     self.time = time
 
   def __eq__(self, other):
@@ -79,15 +79,17 @@ class Function:
     self.terms = terms
     self.time = 0
 
-  def fv(self):
+  def freeVariables(self):
     if len(self.terms) == 0:
       return set()
-    return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
+    return reduce((lambda x, y: x | y),
+      [term.freeVariables() for term in self.terms])
 
-  def ft(self):
+  def freeUnificationTerms(self):
     if len(self.terms) == 0:
       return set()
-    return reduce((lambda x, y: x | y), [term.ft() for term in self.terms])
+    return reduce((lambda x, y: x | y),
+      [term.freeUnificationTerms() for term in self.terms])
 
   def replace(self, old, new):
     if self == old:
@@ -99,10 +101,10 @@ class Function:
   def occurs(self, unification_term):
     return any([term.occurs(unification_term) for term in self.terms])
 
-  def setDeepTime(self, time):
+  def setInstantiationTime(self, time):
     self.time = time
     for term in self.terms:
-      term.setDeepTime(time)
+      term.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Function):
@@ -134,15 +136,17 @@ class Predicate:
     self.name = name
     self.terms = terms
 
-  def fv(self):
+  def freeVariables(self):
     if len(self.terms) == 0:
       return set()
-    return reduce((lambda x, y: x | y), [term.fv() for term in self.terms])
+    return reduce((lambda x, y: x | y),
+      [term.freeVariables() for term in self.terms])
 
-  def ft(self):
+  def freeUnificationTerms(self):
     if len(self.terms) == 0:
       return set()
-    return reduce((lambda x, y: x | y), [term.ft() for term in self.terms])
+    return reduce((lambda x, y: x | y),
+      [term.freeUnificationTerms() for term in self.terms])
 
   def replace(self, old, new):
     if self == old:
@@ -165,9 +169,9 @@ class Predicate:
       [self.terms[i] == other.terms[i] for i in range(len(self.terms))]
     )
 
-  def setDeepTime(self, time):
+  def setInstantiationTime(self, time):
     for term in self.terms:
-      term.setDeepTime(time)
+      term.setInstantiationTime(time)
 
   def __str__(self):
     if len(self.terms) == 0:
@@ -183,11 +187,11 @@ class Not:
   def __init__(self, formula):
     self.formula = formula
 
-  def fv(self):
-    return self.formula.fv()
+  def freeVariables(self):
+    return self.formula.freeVariables()
 
-  def ft(self):
-    return self.formula.ft()
+  def freeUnificationTerms(self):
+    return self.formula.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -197,8 +201,8 @@ class Not:
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.formula.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.formula.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Not):
@@ -216,11 +220,13 @@ class And:
     self.formula_a = formula_a
     self.formula_b = formula_b
 
-  def fv(self):
-    return self.formula_a.fv() | self.formula_b.fv()
+  def freeVariables(self):
+    return self.formula_a.freeVariables() | \
+      self.formula_b.freeVariables()
 
-  def ft(self):
-    return self.formula_a.ft() | self.formula_b.ft()
+  def freeUnificationTerms(self):
+    return self.formula_a.freeUnificationTerms() | \
+      self.formula_b.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -234,9 +240,9 @@ class And:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.formula_a.setDeepTime(time)
-    self.formula_b.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.formula_a.setInstantiationTime(time)
+    self.formula_b.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, And):
@@ -255,11 +261,13 @@ class Or:
     self.formula_a = formula_a
     self.formula_b = formula_b
 
-  def fv(self):
-    return self.formula_a.fv() | self.formula_b.fv()
+  def freeVariables(self):
+    return self.formula_a.freeVariables() | \
+      self.formula_b.freeVariables()
 
-  def ft(self):
-    return self.formula_a.ft() | self.formula_b.ft()
+  def freeUnificationTerms(self):
+    return self.formula_a.freeUnificationTerms() | \
+      self.formula_b.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -273,9 +281,9 @@ class Or:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.formula_a.setDeepTime(time)
-    self.formula_b.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.formula_a.setInstantiationTime(time)
+    self.formula_b.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Or):
@@ -294,11 +302,13 @@ class Implies:
     self.formula_a = formula_a
     self.formula_b = formula_b
 
-  def fv(self):
-    return self.formula_a.fv() | self.formula_b.fv()
+  def freeVariables(self):
+    return self.formula_a.freeVariables() | \
+      self.formula_b.freeVariables()
 
-  def ft(self):
-    return self.formula_a.ft() | self.formula_b.ft()
+  def freeUnificationTerms(self):
+    return self.formula_a.freeUnificationTerms() | \
+      self.formula_b.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -312,9 +322,9 @@ class Implies:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.formula_a.setDeepTime(time)
-    self.formula_b.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.formula_a.setInstantiationTime(time)
+    self.formula_b.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Implies):
@@ -333,11 +343,11 @@ class ForAll:
     self.variable = variable
     self.formula = formula
 
-  def fv(self):
-    return self.formula.fv() - { self.variable }
+  def freeVariables(self):
+    return self.formula.freeVariables() - { self.variable }
 
-  def ft(self):
-    return self.formula.ft()
+  def freeUnificationTerms(self):
+    return self.formula.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -350,9 +360,9 @@ class ForAll:
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.variable.setDeepTime(time)
-    self.formula.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.variable.setInstantiationTime(time)
+    self.formula.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, ForAll):
@@ -371,11 +381,11 @@ class ThereExists:
     self.variable = variable
     self.formula = formula
 
-  def fv(self):
-    return self.formula.fv() - { self.variable }
+  def freeVariables(self):
+    return self.formula.freeVariables() - { self.variable }
 
-  def ft(self):
-    return self.formula.ft()
+  def freeUnificationTerms(self):
+    return self.formula.freeUnificationTerms()
 
   def replace(self, old, new):
     if self == old:
@@ -388,9 +398,9 @@ class ThereExists:
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
 
-  def setDeepTime(self, time):
-    self.variable.setDeepTime(time)
-    self.formula.setDeepTime(time)
+  def setInstantiationTime(self, time):
+    self.variable.setInstantiationTime(time)
+    self.formula.setInstantiationTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, ThereExists):

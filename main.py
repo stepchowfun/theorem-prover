@@ -3,17 +3,17 @@
 
 # 2014 Stephan Boyer
 
-from rules import *
+from prover import *
 
 ##############################################################################
 # Command-line interface
 ##############################################################################
 
-class Error(Exception):
+class InvalidInputError(Exception):
   def __init__(self, message):
     self.message = message
 
-def lexer(inp):
+def lex(inp):
   # perform a lexical analysis
   tokens = []
   pos = 0
@@ -47,7 +47,7 @@ def parse(tokens):
 
   # empty formula
   if len(tokens) == 0:
-    raise Error("Empty formula.")
+    raise InvalidInputError("Empty formula.")
 
   # ForAll
   if tokens[0] == "forall":
@@ -57,7 +57,7 @@ def parse(tokens):
         dot_pos = i
         break
     if dot_pos is None:
-      raise Error("Missing '.' in FORALL quantifier.")
+      raise InvalidInputError("Missing '.' in FORALL quantifier.")
     args = []
     i = 1
     while i <= dot_pos:
@@ -74,11 +74,11 @@ def parse(tokens):
           end = j
           break
       if i == end:
-        raise Error("Missing variable in FORALL quantifier.")
+        raise InvalidInputError("Missing variable in FORALL quantifier.")
       args.append(parse(tokens[i:end]))
       i = end + 1
     if len(tokens) == dot_pos + 1:
-      raise Error("Missing formula in FORALL quantifier.")
+      raise InvalidInputError("Missing formula in FORALL quantifier.")
     formula = parse(tokens[dot_pos + 1:])
     for variable in reversed(args):
       formula = ForAll(variable, formula)
@@ -92,9 +92,9 @@ def parse(tokens):
         dot_pos = i
         break
     if dot_pos is None:
-      raise Error("Missing '.' in FORSOME quantifier.")
+      raise InvalidInputError("Missing '.' in FORSOME quantifier.")
     if dot_pos == 1:
-      raise Error("Missing variable in FORSOME quantifier.")
+      raise InvalidInputError("Missing variable in FORSOME quantifier.")
     args = []
     i = 1
     while i <= dot_pos:
@@ -111,11 +111,11 @@ def parse(tokens):
           end = j
           break
       if i == end:
-        raise Error("Missing variable in FORSOME quantifier.")
+        raise InvalidInputError("Missing variable in FORSOME quantifier.")
       args.append(parse(tokens[i:end]))
       i = end + 1
     if len(tokens) == dot_pos + 1:
-      raise Error("Missing formula in FORSOME quantifier.")
+      raise InvalidInputError("Missing formula in FORSOME quantifier.")
     formula = parse(tokens[dot_pos + 1:])
     for variable in reversed(args):
       formula = ThereExists(variable, formula)
@@ -149,7 +149,7 @@ def parse(tokens):
         break
     if not quantifier_in_left:
       if implies_pos == 0 or implies_pos == len(tokens) - 1:
-        raise Error("Missing formula in IMPLIES connective.")
+        raise InvalidInputError("Missing formula in IMPLIES connective.")
       return Implies(parse(tokens[0:implies_pos]),
         parse(tokens[implies_pos+1:]))
 
@@ -181,7 +181,7 @@ def parse(tokens):
         break
     if not quantifier_in_left:
       if or_pos == 0 or or_pos == len(tokens) - 1:
-        raise Error("Missing formula in OR connective.")
+        raise InvalidInputError("Missing formula in OR connective.")
       return Or(parse(tokens[0:or_pos]), parse(tokens[or_pos+1:]))
 
   # And
@@ -212,13 +212,13 @@ def parse(tokens):
         break
     if not quantifier_in_left:
       if and_pos == 0 or and_pos == len(tokens) - 1:
-        raise Error("Missing formula in AND connective.")
+        raise InvalidInputError("Missing formula in AND connective.")
       return And(parse(tokens[0:and_pos]), parse(tokens[and_pos+1:]))
 
   # Not
   if tokens[0] == "not":
     if len(tokens) < 2:
-      raise Error("Missing formula in NOT connective.")
+      raise InvalidInputError("Missing formula in NOT connective.")
     return Not(parse(tokens[1:]))
 
   # Function
@@ -226,7 +226,7 @@ def parse(tokens):
     len(tokens) > 1 and not any([c.isupper() for c in tokens[0]]) and \
     tokens[1] == "(":
     if tokens[-1] != ")":
-      raise Error("Missing ')' after function argument list.")
+      raise InvalidInputError("Missing ')' after function argument list.")
     name = tokens[0]
     args = []
     i = 2
@@ -245,7 +245,7 @@ def parse(tokens):
             end = j
             break
         if i == end:
-          raise Error("Missing function argument.")
+          raise InvalidInputError("Missing function argument.")
         args.append(parse(tokens[i:end]))
         i = end + 1
     return Function(name, args)
@@ -258,7 +258,7 @@ def parse(tokens):
     len(tokens) > 1 and any([c.isupper() for c in tokens[0]]) and \
     tokens[1] == "(":
     if tokens[-1] != ")":
-      raise Error("Missing ')' after predicate argument list.")
+      raise InvalidInputError("Missing ')' after predicate argument list.")
     name = tokens[0]
     args = []
     i = 2
@@ -277,7 +277,7 @@ def parse(tokens):
             end = j
             break
         if i == end:
-          raise Error("Missing predicate argument.")
+          raise InvalidInputError("Missing predicate argument.")
         args.append(parse(tokens[i:end]))
         i = end + 1
     return Predicate(name, args)
@@ -290,12 +290,12 @@ def parse(tokens):
   # Group
   if tokens[0] == "(":
     if tokens[-1] != ")":
-      raise Error("Missing ')'.")
+      raise InvalidInputError("Missing ')'.")
     if len(tokens) == 2:
-      raise Error("Missing formula in parenthetical group.")
+      raise InvalidInputError("Missing formula in parenthetical group.")
     return parse(tokens[1:-1])
 
-  raise Error("Unable to parse: %s..." % tokens[0])
+  raise InvalidInputError("Unable to parse: %s..." % tokens[0])
 
 def typecheck_term(term):
   if isinstance(term, Variable):
@@ -304,7 +304,7 @@ def typecheck_term(term):
     for subterm in term.terms:
       typecheck_term(subterm)
     return
-  raise Error("Invalid term: %s." % term)
+  raise InvalidInputError("Invalid term: %s." % term)
 
 def typecheck_formula(formula):
   if isinstance(formula, Predicate):
@@ -328,28 +328,28 @@ def typecheck_formula(formula):
     return
   if isinstance(formula, ForAll):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORALL quantifier: %s." % \
+      raise InvalidInputError("Invalid bound variable in FORALL quantifier: %s." % \
         formula.variable)
     typecheck_formula(formula.formula)
     return
   if isinstance(formula, ThereExists):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORSOME quantifier: %s." % \
+      raise InvalidInputError("Invalid bound variable in FORSOME quantifier: %s." % \
         formula.variable)
     typecheck_formula(formula.formula)
     return
-  raise Error("Invalid formula: %s." % formula)
+  raise InvalidInputError("Invalid formula: %s." % formula)
 
 def check_formula(formula):
   try:
     typecheck_formula(formula)
-  except Error as formula_error:
+  except InvalidInputError as formula_error:
     try:
       typecheck_term(formula)
-    except Error as term_error:
+    except InvalidInputError as term_error:
       raise formula_error
     else:
-      raise Error("Enter a formula, not a term.")
+      raise InvalidInputError("Enter a formula, not a term.")
 
 def main():
   print "First-Order Logic Theorem Prover"
@@ -388,18 +388,18 @@ def main():
       inp = raw_input("\n> ")
       commands = ["axiom", "lemma", "axioms", "lemmas", "remove", "reset"]
       tokens = [(token.lower() if token in commands else token)
-        for token in lexer(inp)]
+        for token in lex(inp)]
       for token in tokens[1:]:
         if token in commands:
-          raise Error("Unexpected keyword: %s." % token)
+          raise InvalidInputError("Unexpected keyword: %s." % token)
       if len(tokens) > 0 and tokens[0] == "axioms":
         if len(tokens) > 1:
-          raise Error("Unexpected: %s." % tokens[1])
+          raise InvalidInputError("Unexpected: %s." % tokens[1])
         for axiom in axioms:
           print axiom
       elif len(tokens) > 0 and tokens[0] == "lemmas":
         if len(tokens) > 1:
-          raise Error("Unexpected: %s." % tokens[1])
+          raise InvalidInputError("Unexpected: %s." % tokens[1])
         for lemma in lemmas:
           print lemma
       elif len(tokens) > 0 and tokens[0] == "axiom":
@@ -445,7 +445,7 @@ def main():
           print "Not an axiom: %s." % formula
       elif len(tokens) > 0 and tokens[0] == "reset":
         if len(tokens) > 1:
-          raise Error("Unexpected: %s." % tokens[1])
+          raise InvalidInputError("Unexpected: %s." % tokens[1])
         axioms = set()
         lemmas = {}
       else:
@@ -456,7 +456,7 @@ def main():
           print "Formula proven: %s." % formula
         else:
           print "Formula unprovable: %s." % formula
-    except Error as e:
+    except InvalidInputError as e:
       print e.message
     except KeyboardInterrupt:
       pass

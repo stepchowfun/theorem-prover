@@ -71,24 +71,24 @@ class Sequent:
     self.siblings = siblings
     self.depth = depth
 
-  def fv(self):
+  def freeVariables(self):
     result = set()
     for formula in self.left:
-      result |= formula.fv()
+      result |= formula.freeVariables()
     for formula in self.right:
-      result |= formula.fv()
+      result |= formula.freeVariables()
     return result
 
-  def ft(self):
+  def freeUnificationTerms(self):
     result = set()
     for formula in self.left:
-      result |= formula.ft()
+      result |= formula.freeUnificationTerms()
     for formula in self.right:
-      result |= formula.ft()
+      result |= formula.freeUnificationTerms()
     return result
 
   def getVariableName(self, prefix):
-    fv = self.fv() | self.ft()
+    fv = self.freeVariables() | self.freeUnificationTerms()
     index = 1
     name = prefix + str(index)
     while Variable(name) in fv or UnificationTerm(name) in fv:
@@ -143,9 +143,9 @@ class Sequent:
 def proveSequent(sequent):
   # reset the time for each formula in the sequent
   for formula in sequent.left:
-    formula.setDeepTime(0)
+    formula.setInstantiationTime(0)
   for formula in sequent.right:
-    formula.setDeepTime(0)
+    formula.setInstantiationTime(0)
 
   # sequents to be proven
   frontier = [sequent]
@@ -244,7 +244,8 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.left[left_formula]
-          new_sequent.right[left_formula.formula] = old_sequent.left[left_formula] + 1
+          new_sequent.right[left_formula.formula] = \
+            old_sequent.left[left_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
@@ -259,8 +260,10 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.left[left_formula]
-          new_sequent.left[left_formula.formula_a] = old_sequent.left[left_formula] + 1
-          new_sequent.left[left_formula.formula_b] = old_sequent.left[left_formula] + 1
+          new_sequent.left[left_formula.formula_a] = \
+            old_sequent.left[left_formula] + 1
+          new_sequent.left[left_formula.formula_b] = \
+            old_sequent.left[left_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
@@ -282,8 +285,10 @@ def proveSequent(sequent):
           )
           del new_sequent_a.left[left_formula]
           del new_sequent_b.left[left_formula]
-          new_sequent_a.left[left_formula.formula_a] = old_sequent.left[left_formula] + 1
-          new_sequent_b.left[left_formula.formula_b] = old_sequent.left[left_formula] + 1
+          new_sequent_a.left[left_formula.formula_a] = \
+            old_sequent.left[left_formula] + 1
+          new_sequent_b.left[left_formula.formula_b] = \
+            old_sequent.left[left_formula] + 1
           if new_sequent_a not in visited:
             if new_sequent_a.siblings is not None:
               new_sequent_a.siblings.add(new_sequent_a)
@@ -310,8 +315,10 @@ def proveSequent(sequent):
           )
           del new_sequent_a.left[left_formula]
           del new_sequent_b.left[left_formula]
-          new_sequent_a.right[left_formula.formula_a] = old_sequent.left[left_formula] + 1
-          new_sequent_b.left[left_formula.formula_b] = old_sequent.left[left_formula] + 1
+          new_sequent_a.right[left_formula.formula_a] = \
+            old_sequent.left[left_formula] + 1
+          new_sequent_b.left[left_formula.formula_b] = \
+            old_sequent.left[left_formula] + 1
           if new_sequent_a not in visited:
             if new_sequent_a.siblings is not None:
               new_sequent_a.siblings.add(new_sequent_a)
@@ -335,7 +342,7 @@ def proveSequent(sequent):
             left_formula.variable,
             UnificationTerm(old_sequent.getVariableName("t"))
           )
-          formula.setDeepTime(old_sequent.depth + 1)
+          formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.left[formula] = new_sequent.left[left_formula]
           if new_sequent not in visited or formula == left_formula.formula:
             if new_sequent.siblings is not None:
@@ -352,8 +359,9 @@ def proveSequent(sequent):
           )
           del new_sequent.left[left_formula]
           variable = Variable(old_sequent.getVariableName("v"))
-          formula = left_formula.formula.replace(left_formula.variable, variable)
-          formula.setDeepTime(old_sequent.depth + 1)
+          formula = left_formula.formula.replace(left_formula.variable,
+            variable)
+          formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.left[formula] = old_sequent.left[left_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
@@ -372,7 +380,8 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.right[right_formula]
-          new_sequent.left[right_formula.formula] = old_sequent.right[right_formula] + 1
+          new_sequent.left[right_formula.formula] = \
+            old_sequent.right[right_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
@@ -394,8 +403,10 @@ def proveSequent(sequent):
           )
           del new_sequent_a.right[right_formula]
           del new_sequent_b.right[right_formula]
-          new_sequent_a.right[right_formula.formula_a] = old_sequent.right[right_formula] + 1
-          new_sequent_b.right[right_formula.formula_b] = old_sequent.right[right_formula] + 1
+          new_sequent_a.right[right_formula.formula_a] = \
+            old_sequent.right[right_formula] + 1
+          new_sequent_b.right[right_formula.formula_b] = \
+            old_sequent.right[right_formula] + 1
           if new_sequent_a not in visited:
             if new_sequent_a.siblings is not None:
               new_sequent_a.siblings.add(new_sequent_a)
@@ -415,8 +426,10 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.right[right_formula]
-          new_sequent.right[right_formula.formula_a] = old_sequent.right[right_formula] + 1
-          new_sequent.right[right_formula.formula_b] = old_sequent.right[right_formula] + 1
+          new_sequent.right[right_formula.formula_a] = \
+            old_sequent.right[right_formula] + 1
+          new_sequent.right[right_formula.formula_b] = \
+            old_sequent.right[right_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
@@ -431,8 +444,10 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.right[right_formula]
-          new_sequent.left[right_formula.formula_a] = old_sequent.right[right_formula] + 1
-          new_sequent.right[right_formula.formula_b] = old_sequent.right[right_formula] + 1
+          new_sequent.left[right_formula.formula_a] = \
+            old_sequent.right[right_formula] + 1
+          new_sequent.right[right_formula.formula_b] = \
+            old_sequent.right[right_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
               new_sequent.siblings.add(new_sequent)
@@ -448,8 +463,9 @@ def proveSequent(sequent):
           )
           del new_sequent.right[right_formula]
           variable = Variable(old_sequent.getVariableName("v"))
-          formula = right_formula.formula.replace(right_formula.variable, variable)
-          formula.setDeepTime(old_sequent.depth + 1)
+          formula = right_formula.formula.replace(right_formula.variable,
+            variable)
+          formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.right[formula] = old_sequent.right[right_formula] + 1
           if new_sequent not in visited:
             if new_sequent.siblings is not None:
@@ -469,7 +485,7 @@ def proveSequent(sequent):
             right_formula.variable,
             UnificationTerm(old_sequent.getVariableName("t"))
           )
-          formula.setDeepTime(old_sequent.depth + 1)
+          formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.right[formula] = new_sequent.right[right_formula]
           if new_sequent not in visited or formula == right_formula.formula:
             if new_sequent.siblings is not None:
@@ -484,4 +500,9 @@ def proveSequent(sequent):
 # returns True if the formula is provable
 # returns False or loops forever if the formula is not provable
 def proveFormula(axioms, formula):
-  return proveSequent(Sequent({axiom: 0 for axiom in axioms}, { formula: 0 }, None, 0))
+  return proveSequent(Sequent(
+    { axiom: 0 for axiom in axioms },
+    { formula: 0 },
+    None,
+    0
+  ))
