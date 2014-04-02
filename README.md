@@ -1,4 +1,4 @@
-An automated theorem prover for first-order logic.
+An automated theorem prover for first-order logic.  For any provable formula in first-order logic, this program is guaranteed to the proof (eventually).  However, as a corallary to Gödel's first incompleteness theorem, there are some not-provable fomulae that will cause this program to loop forever.
 
 To get started, run `cli.py`:
 
