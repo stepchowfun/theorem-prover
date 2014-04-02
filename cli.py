@@ -210,7 +210,7 @@ def typecheck_term(term):
     for subterm in term.terms:
       typecheck_term(subterm)
     return
-  raise Error("Invalid term: " + str(term) + ".")
+  raise Error("Invalid term: %s." % term)
 
 def typecheck_formula(formula):
   if isinstance(formula, Predicate):
@@ -234,17 +234,17 @@ def typecheck_formula(formula):
     return
   if isinstance(formula, ForAll):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORALL quantifier: " +
-        str(formula.variable) + ".")
+      raise Error("Invalid bound variable in FORALL quantifier: %s." % \
+        formula.variable)
     typecheck_formula(formula.formula)
     return
   if isinstance(formula, ThereExists):
     if not isinstance(formula.variable, Variable):
-      raise Error("Invalid bound variable in FORSOME quantifier: " +
-        str(formula.variable) + ".")
+      raise Error("Invalid bound variable in FORSOME quantifier: %s." % \
+        formula.variable)
     typecheck_formula(formula.formula)
     return
-  raise Error("Invalid formula: " + str(formula) + ".")
+  raise Error("Invalid formula: %s." % formula)
 
 def check_formula(formula):
   try:
@@ -294,15 +294,15 @@ def main():
         formula = parse(tokens[1:])
         check_formula(formula)
         axioms.add(formula)
-        print "Axiom added: " + str(formula) + "."
+        print "Axiom added: %s." % formula
       elif len(tokens) > 0 and tokens[0] == "remove":
         formula = parse(tokens[1:])
         check_formula(formula)
         if formula in axioms:
           axioms.remove(formula)
-          print "Axiom removed: " + str(formula) + "."
+          print "Axiom removed: %s." % formula
         else:
-          print "Not an axiom: " + str(formula) + "."
+          print "Not an axiom: %s." % formula
       elif len(tokens) == 1 and tokens[0] == "axioms":
         for axiom in axioms:
           print axiom
@@ -313,9 +313,9 @@ def main():
         check_formula(formula)
         result = proveFormula(axioms, formula)
         if result:
-          print "Formula proven: " + str(formula) + "."
+          print "Formula proven: %s." % formula
         else:
-          print "Formula unprovable: " + str(formula) + "."
+          print "Formula unprovable: %s." % formula
     except Error as e:
       print e.message
     except KeyboardInterrupt:

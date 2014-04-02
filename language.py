@@ -10,6 +10,7 @@
 class Variable:
   def __init__(self, name):
     self.name = name
+    self.time = 0
 
   def fv(self):
     return { self }
@@ -25,6 +26,9 @@ class Variable:
   def occurs(self, unification_term):
     return False
 
+  def setDeepTime(self, time):
+    self.time = time
+
   def __eq__(self, other):
     if not isinstance(other, Variable):
       return False
@@ -39,6 +43,7 @@ class Variable:
 class UnificationTerm:
   def __init__(self, name):
     self.name = name
+    self.time = 0
 
   def fv(self):
     return set()
@@ -53,6 +58,9 @@ class UnificationTerm:
 
   def occurs(self, unification_term):
     return self == unification_term
+
+  def setDeepTime(self, time):
+    self.time = time
 
   def __eq__(self, other):
     if not isinstance(other, UnificationTerm):
@@ -69,6 +77,7 @@ class Function:
   def __init__(self, name, terms):
     self.name = name
     self.terms = terms
+    self.time = 0
 
   def fv(self):
     if len(self.terms) == 0:
@@ -89,6 +98,11 @@ class Function:
 
   def occurs(self, unification_term):
     return any([term.occurs(unification_term) for term in self.terms])
+
+  def setDeepTime(self, time):
+    self.time = time
+    for term in self.terms:
+      term.setDeepTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Function):
@@ -151,6 +165,10 @@ class Predicate:
       [self.terms[i] == other.terms[i] for i in range(len(self.terms))]
     )
 
+  def setDeepTime(self, time):
+    for term in self.terms:
+      term.setDeepTime(time)
+
   def __str__(self):
     if len(self.terms) == 0:
       return self.name
@@ -178,6 +196,9 @@ class Not:
 
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
+
+  def setDeepTime(self, time):
+    self.formula.setDeepTime(time)
 
   def __eq__(self, other):
     if not isinstance(other, Not):
@@ -213,6 +234,10 @@ class And:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
+  def setDeepTime(self, time):
+    self.formula_a.setDeepTime(time)
+    self.formula_b.setDeepTime(time)
+
   def __eq__(self, other):
     if not isinstance(other, And):
       return False
@@ -220,7 +245,7 @@ class And:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(" + str(self.formula_a) + " ∧ " + str(self.formula_b) + ")"
+    return "(%s ∧ %s)" % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -248,6 +273,10 @@ class Or:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
+  def setDeepTime(self, time):
+    self.formula_a.setDeepTime(time)
+    self.formula_b.setDeepTime(time)
+
   def __eq__(self, other):
     if not isinstance(other, Or):
       return False
@@ -255,7 +284,7 @@ class Or:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(" + str(self.formula_a) + " ∨ " + str(self.formula_b) + ")"
+    return "(%s ∨ %s)" % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -283,6 +312,10 @@ class Implies:
     return self.formula_a.occurs(unification_term) or \
       self.formula_b.occurs(unification_term)
 
+  def setDeepTime(self, time):
+    self.formula_a.setDeepTime(time)
+    self.formula_b.setDeepTime(time)
+
   def __eq__(self, other):
     if not isinstance(other, Implies):
       return False
@@ -290,7 +323,7 @@ class Implies:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(" + str(self.formula_a) + " → " + str(self.formula_b) + ")"
+    return "(%s → %s)" % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -317,6 +350,10 @@ class ForAll:
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
 
+  def setDeepTime(self, time):
+    self.variable.setDeepTime(time)
+    self.formula.setDeepTime(time)
+
   def __eq__(self, other):
     if not isinstance(other, ForAll):
       return False
@@ -324,7 +361,7 @@ class ForAll:
       self.formula == other.formula
 
   def __str__(self):
-    return "(" + "∀" + str(self.variable) + ". " + str(self.formula) + ")"
+    return "(∀%s. %s)" % (self.variable, self.formula)
 
   def __hash__(self):
     return hash(str(self))
@@ -351,6 +388,10 @@ class ThereExists:
   def occurs(self, unification_term):
     return self.formula.occurs(unification_term)
 
+  def setDeepTime(self, time):
+    self.variable.setDeepTime(time)
+    self.formula.setDeepTime(time)
+
   def __eq__(self, other):
     if not isinstance(other, ThereExists):
       return False
@@ -358,7 +399,7 @@ class ThereExists:
       self.formula == other.formula
 
   def __str__(self):
-    return "(" + "∃" + str(self.variable) + ". " + str(self.formula) + ")"
+    return "(∃%s. %s)" % (self.variable, self.formula)
 
   def __hash__(self):
     return hash(str(self))
