@@ -355,7 +355,7 @@ def main():
       elif len(tokens) > 0 and tokens[0] == "lemma":
         formula = parse(tokens[1:])
         check_formula(formula)
-        result = proveFormula(axioms, formula)
+        result = proveFormula(axioms | set(lemmas.keys()), formula)
         if result:
           lemmas[formula] = axioms.copy()
           print "Lemma proven: %s." % formula
@@ -400,7 +400,7 @@ def main():
       else:
         formula = parse(tokens)
         check_formula(formula)
-        result = proveFormula(axioms, formula)
+        result = proveFormula(axioms | set(lemmas.keys()), formula)
         if result:
           print "Formula proven: %s." % formula
         else:
