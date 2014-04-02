@@ -137,8 +137,15 @@ def parse(tokens):
       break
   if implies_pos is not None:
     quantifier_in_left = False
+    depth = 0
     for i in range(implies_pos):
-      if tokens[i] == "forall" or tokens[i] == "forsome":
+      if tokens[i] == "(":
+        depth += 1
+        continue
+      if tokens[i] == ")":
+        depth -= 1
+        continue
+      if depth == 0 and (tokens[i] == "forall" or tokens[i] == "forsome"):
         quantifier_in_left = True
         break
     if not quantifier_in_left:
@@ -162,8 +169,15 @@ def parse(tokens):
       break
   if or_pos is not None:
     quantifier_in_left = False
+    depth = 0
     for i in range(or_pos):
-      if tokens[i] == "forall" or tokens[i] == "forsome":
+      if tokens[i] == "(":
+        depth += 1
+        continue
+      if tokens[i] == ")":
+        depth -= 1
+        continue
+      if depth == 0 and (tokens[i] == "forall" or tokens[i] == "forsome"):
         quantifier_in_left = True
         break
     if not quantifier_in_left:
@@ -186,8 +200,15 @@ def parse(tokens):
       break
   if and_pos is not None:
     quantifier_in_left = False
+    depth = 0
     for i in range(and_pos):
-      if tokens[i] == "forall" or tokens[i] == "forsome":
+      if tokens[i] == "(":
+        depth += 1
+        continue
+      if tokens[i] == ")":
+        depth -= 1
+        continue
+      if depth == 0 and (tokens[i] == "forall" or tokens[i] == "forsome"):
         quantifier_in_left = True
         break
     if not quantifier_in_left:
