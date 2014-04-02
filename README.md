@@ -8,8 +8,8 @@ To get started, run `cli.py`:
 
     Terms:
 
-      x       (variable)
-      f(x)    (function)
+      x               (variable)
+      f(term, ...)    (function)
 
     Formulae:
 
