@@ -147,16 +147,21 @@ def proveSequent(sequent):
   # sequents to be proven
   frontier = [sequent]
 
-  # sequents which have been visited
-  visited = { sequent }
+  # sequents which have been proven
+  proven = { sequent }
 
-  while len(frontier) > 0:
+  while True:
     # get the next sequent
-    old_sequent = frontier.pop(0)
+    old_sequent = None
+    while len(frontier) > 0 and (old_sequent is None or old_sequent in proven):
+      old_sequent = frontier.pop(0)
+    if old_sequent is None:
+      break
     print "%s. %s" % (old_sequent.depth, old_sequent)
 
     # check if this sequent is axiomatically true without unification
     if len(set(old_sequent.left.keys()) & set(old_sequent.right.keys())) > 0:
+      proven.add(old_sequent)
       continue
 
     # check if this sequent has unification terms
@@ -193,7 +198,7 @@ def proveSequent(sequent):
               print "%s. %s" % (sequent.depth, sequent)
           for k, v in substitution.items():
             print "  %s = %s" % (k, v)
-          visited |= old_sequent.siblings
+          proven |= old_sequent.siblings
           frontier = [sequent for sequent in frontier
             if sequent not in old_sequent.siblings]
           continue
@@ -233,6 +238,7 @@ def proveSequent(sequent):
 
       # apply a left rule
       if apply_left:
+        print left_formula
         if isinstance(left_formula, Not):
           new_sequent = Sequent(
             old_sequent.left.copy(),
@@ -242,12 +248,10 @@ def proveSequent(sequent):
           )
           del new_sequent.left[left_formula]
           new_sequent.right[left_formula.formula] = \
-            old_sequent.left[left_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          old_sequent.left[left_formula] + 1
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(left_formula, And):
           new_sequent = Sequent(
@@ -260,12 +264,10 @@ def proveSequent(sequent):
           new_sequent.left[left_formula.formula_a] = \
             old_sequent.left[left_formula] + 1
           new_sequent.left[left_formula.formula_b] = \
-            old_sequent.left[left_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          old_sequent.left[left_formula] + 1
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(left_formula, Or):
           new_sequent_a = Sequent(
@@ -285,17 +287,13 @@ def proveSequent(sequent):
           new_sequent_a.left[left_formula.formula_a] = \
             old_sequent.left[left_formula] + 1
           new_sequent_b.left[left_formula.formula_b] = \
-            old_sequent.left[left_formula] + 1
-          if new_sequent_a not in visited:
-            if new_sequent_a.siblings is not None:
-              new_sequent_a.siblings.add(new_sequent_a)
-            frontier.append(new_sequent_a)
-            visited.add(new_sequent_a)
-          if new_sequent_b not in visited:
-            if new_sequent_b.siblings is not None:
-              new_sequent_b.siblings.add(new_sequent_b)
-            frontier.append(new_sequent_b)
-            visited.add(new_sequent_b)
+          old_sequent.left[left_formula] + 1
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
+          frontier.append(new_sequent_a)
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
+          frontier.append(new_sequent_b)
           break
         if isinstance(left_formula, Implies):
           new_sequent_a = Sequent(
@@ -315,17 +313,13 @@ def proveSequent(sequent):
           new_sequent_a.right[left_formula.formula_a] = \
             old_sequent.left[left_formula] + 1
           new_sequent_b.left[left_formula.formula_b] = \
-            old_sequent.left[left_formula] + 1
-          if new_sequent_a not in visited:
-            if new_sequent_a.siblings is not None:
-              new_sequent_a.siblings.add(new_sequent_a)
-            frontier.append(new_sequent_a)
-            visited.add(new_sequent_a)
-          if new_sequent_b not in visited:
-            if new_sequent_b.siblings is not None:
-              new_sequent_b.siblings.add(new_sequent_b)
-            frontier.append(new_sequent_b)
-            visited.add(new_sequent_b)
+          old_sequent.left[left_formula] + 1
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
+          frontier.append(new_sequent_a)
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
+          frontier.append(new_sequent_b)
           break
         if isinstance(left_formula, ForAll):
           new_sequent = Sequent(
@@ -340,12 +334,11 @@ def proveSequent(sequent):
             UnificationTerm(old_sequent.getVariableName("t"))
           )
           formula.setInstantiationTime(old_sequent.depth + 1)
-          new_sequent.left[formula] = new_sequent.left[left_formula]
-          if new_sequent not in visited or formula == left_formula.formula:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if formula not in new_sequent.left:
+            new_sequent.left[formula] = new_sequent.left[left_formula]
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(left_formula, ThereExists):
           new_sequent = Sequent(
@@ -360,15 +353,14 @@ def proveSequent(sequent):
             variable)
           formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.left[formula] = old_sequent.left[left_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
 
       # apply a right rule
       if apply_right:
+        print right_formula
         if isinstance(right_formula, Not):
           new_sequent = Sequent(
             old_sequent.left.copy(),
@@ -378,12 +370,10 @@ def proveSequent(sequent):
           )
           del new_sequent.right[right_formula]
           new_sequent.left[right_formula.formula] = \
-            old_sequent.right[right_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          old_sequent.right[right_formula] + 1
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(right_formula, And):
           new_sequent_a = Sequent(
@@ -403,17 +393,13 @@ def proveSequent(sequent):
           new_sequent_a.right[right_formula.formula_a] = \
             old_sequent.right[right_formula] + 1
           new_sequent_b.right[right_formula.formula_b] = \
-            old_sequent.right[right_formula] + 1
-          if new_sequent_a not in visited:
-            if new_sequent_a.siblings is not None:
-              new_sequent_a.siblings.add(new_sequent_a)
-            frontier.append(new_sequent_a)
-            visited.add(new_sequent_a)
-          if new_sequent_b not in visited:
-            if new_sequent_b.siblings is not None:
-              new_sequent_b.siblings.add(new_sequent_b)
-            frontier.append(new_sequent_b)
-            visited.add(new_sequent_b)
+          old_sequent.right[right_formula] + 1
+          if new_sequent_a.siblings is not None:
+            new_sequent_a.siblings.add(new_sequent_a)
+          frontier.append(new_sequent_a)
+          if new_sequent_b.siblings is not None:
+            new_sequent_b.siblings.add(new_sequent_b)
+          frontier.append(new_sequent_b)
           break
         if isinstance(right_formula, Or):
           new_sequent = Sequent(
@@ -427,11 +413,9 @@ def proveSequent(sequent):
             old_sequent.right[right_formula] + 1
           new_sequent.right[right_formula.formula_b] = \
             old_sequent.right[right_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(right_formula, Implies):
           new_sequent = Sequent(
@@ -445,11 +429,9 @@ def proveSequent(sequent):
             old_sequent.right[right_formula] + 1
           new_sequent.right[right_formula.formula_b] = \
             old_sequent.right[right_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(right_formula, ForAll):
           new_sequent = Sequent(
@@ -464,11 +446,9 @@ def proveSequent(sequent):
             variable)
           formula.setInstantiationTime(old_sequent.depth + 1)
           new_sequent.right[formula] = old_sequent.right[right_formula] + 1
-          if new_sequent not in visited:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
         if isinstance(right_formula, ThereExists):
           new_sequent = Sequent(
@@ -483,12 +463,11 @@ def proveSequent(sequent):
             UnificationTerm(old_sequent.getVariableName("t"))
           )
           formula.setInstantiationTime(old_sequent.depth + 1)
-          new_sequent.right[formula] = new_sequent.right[right_formula]
-          if new_sequent not in visited or formula == right_formula.formula:
-            if new_sequent.siblings is not None:
-              new_sequent.siblings.add(new_sequent)
-            frontier.append(new_sequent)
-            visited.add(new_sequent)
+          if formula not in new_sequent.right:
+            new_sequent.right[formula] = new_sequent.right[right_formula]
+          if new_sequent.siblings is not None:
+            new_sequent.siblings.add(new_sequent)
+          frontier.append(new_sequent)
           break
 
   # no more sequents to prove
