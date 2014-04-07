@@ -193,11 +193,6 @@ def proveSequent(sequent):
           if pos < 0:
             break
         if substitution is not None:
-          for sequent in old_sequent.siblings:
-            if sequent != old_sequent:
-              print "%s. %s" % (sequent.depth, sequent)
-          for k, v in substitution.items():
-            print "  %s = %s" % (k, v)
           proven |= old_sequent.siblings
           frontier = [sequent for sequent in frontier
             if sequent not in old_sequent.siblings]
@@ -238,7 +233,6 @@ def proveSequent(sequent):
 
       # apply a left rule
       if apply_left:
-        print left_formula
         if isinstance(left_formula, Not):
           new_sequent = Sequent(
             old_sequent.left.copy(),
@@ -360,7 +354,6 @@ def proveSequent(sequent):
 
       # apply a right rule
       if apply_right:
-        print right_formula
         if isinstance(right_formula, Not):
           new_sequent = Sequent(
             old_sequent.left.copy(),
