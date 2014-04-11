@@ -51,10 +51,6 @@ Example session:
     1. ⊢ P
     Formula unprovable: (P ∧ ¬P).
 
-    > P(x, y)
-    0. ⊢ P(x, y)
-    Formula unprovable: P(x, y).
-
     > forall x. P(x) implies (Q(x) implies P(x))
     0. ⊢ (∀x. (P(x) → (Q(x) → P(x))))
     1. ⊢ (P(v1) → (Q(v1) → P(v1)))
