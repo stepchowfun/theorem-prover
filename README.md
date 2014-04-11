@@ -1,6 +1,10 @@
 An automated theorem prover for first-order logic. For any provable formula, this program is guaranteed to find the proof (eventually). However, as a corollary to Gödel's first incompleteness theorem, there are some unprovable formulae that will cause this program to loop forever.
 
-Note: This is only a pedagogical tool. It is too slow to be used for anything practical.
+Some notes:
+
+* The proof steps are written as [sequents](http://en.wikipedia.org/wiki/Sequent).
+* `language.py` contains boilerplate classes used to represent logical formulae. The actual theorem prover is in `prover.py`. The command-line interface, including the parser, pretty-printer, etc., is in `main.py`.
+* This is only a pedagogical tool. It is too slow to be used for anything practical.
 
 To get started, run `main.py`:
 
