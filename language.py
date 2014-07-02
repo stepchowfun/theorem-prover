@@ -390,7 +390,7 @@ class ThereExists:
   def replace(self, old, new):
     if self == old:
       return new
-    return ForAll(
+    return ThereExists(
       self.variable.replace(old, new),
       self.formula.replace(old, new)
     )
