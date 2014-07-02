@@ -120,9 +120,9 @@ class Function:
   def __str__(self):
     if len(self.terms) == 0:
       return self.name
-    return self.name + "(" + ", ".join(
+    return self.name + '(' + ', '.join(
       [str(term) for term in self.terms]
-    ) + ")"
+    ) + ')'
 
   def __hash__(self):
     return hash(str(self))
@@ -176,9 +176,9 @@ class Predicate:
   def __str__(self):
     if len(self.terms) == 0:
       return self.name
-    return self.name + "(" + ", ".join(
+    return self.name + '(' + ', '.join(
       [str(term) for term in self.terms]
-    ) + ")"
+    ) + ')'
 
   def __hash__(self):
     return hash(str(self))
@@ -210,7 +210,7 @@ class Not:
     return self.formula == other.formula
 
   def __str__(self):
-    return "¬" + str(self.formula)
+    return '¬' + str(self.formula)
 
   def __hash__(self):
     return hash(str(self))
@@ -251,7 +251,7 @@ class And:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(%s ∧ %s)" % (self.formula_a, self.formula_b)
+    return '(%s ∧ %s)' % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -292,7 +292,7 @@ class Or:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(%s ∨ %s)" % (self.formula_a, self.formula_b)
+    return '(%s ∨ %s)' % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -333,7 +333,7 @@ class Implies:
       self.formula_b == other.formula_b
 
   def __str__(self):
-    return "(%s → %s)" % (self.formula_a, self.formula_b)
+    return '(%s → %s)' % (self.formula_a, self.formula_b)
 
   def __hash__(self):
     return hash(str(self))
@@ -371,7 +371,7 @@ class ForAll:
       self.formula == other.formula
 
   def __str__(self):
-    return "(∀%s. %s)" % (self.variable, self.formula)
+    return '(∀%s. %s)' % (self.variable, self.formula)
 
   def __hash__(self):
     return hash(str(self))
@@ -409,7 +409,7 @@ class ThereExists:
       self.formula == other.formula
 
   def __str__(self):
-    return "(∃%s. %s)" % (self.variable, self.formula)
+    return '(∃%s. %s)' % (self.variable, self.formula)
 
   def __hash__(self):
     return hash(str(self))

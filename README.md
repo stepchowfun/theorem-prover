@@ -26,7 +26,7 @@ To get started, run `main.py`:
       P and Q        (conjunction)
       P implies Q    (implication)
       forall x. P    (universal quantification)
-      forsome x. P   (existential quantification)
+      exists x. P    (existential quantification)
 
     Enter formulae at the prompt. The following commands are also available for manipulating axioms:
 
@@ -59,7 +59,7 @@ Example session:
     3. Q(v1), P(v1) ⊢ P(v1)
     Formula proven: (∀x. (P(x) → (Q(x) → P(x)))).
 
-    > forsome x. (P(x) implies forall y. P(y))
+    > exists x. (P(x) implies forall y. P(y))
     0. ⊢ (∃x. (P(x) → (∀y. P(y))))
     1. ⊢ (P(t1) → (∀y. P(y))), (∃x. (P(x) → (∀y. P(y))))
     2. P(t1) ⊢ (∀y. P(y)), (∃x. (P(x) → (∀y. P(y))))

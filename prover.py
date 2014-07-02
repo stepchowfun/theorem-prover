@@ -120,13 +120,13 @@ class Sequent:
     return True
 
   def __str__(self):
-    left_part = ", ".join([str(formula) for formula in self.left])
-    right_part = ", ".join([str(formula) for formula in self.right])
-    if left_part != "":
-      left_part = left_part + " "
-    if right_part != "":
-      right_part = " " + right_part
-    return left_part + "⊢" + right_part
+    left_part = ', '.join([str(formula) for formula in self.left])
+    right_part = ', '.join([str(formula) for formula in self.right])
+    if left_part != '':
+      left_part = left_part + ' '
+    if right_part != '':
+      right_part = ' ' + right_part
+    return left_part + '⊢' + right_part
 
   def __hash__(self):
     return hash(str(self))
@@ -157,7 +157,7 @@ def proveSequent(sequent):
       old_sequent = frontier.pop(0)
     if old_sequent is None:
       break
-    print "%s. %s" % (old_sequent.depth, old_sequent)
+    print('%s. %s' % (old_sequent.depth, old_sequent))
 
     # check if this sequent is axiomatically true without unification
     if len(set(old_sequent.left.keys()) & set(old_sequent.right.keys())) > 0:
@@ -325,7 +325,7 @@ def proveSequent(sequent):
           new_sequent.left[left_formula] += 1
           formula = left_formula.formula.replace(
             left_formula.variable,
-            UnificationTerm(old_sequent.getVariableName("t"))
+            UnificationTerm(old_sequent.getVariableName('t'))
           )
           formula.setInstantiationTime(old_sequent.depth + 1)
           if formula not in new_sequent.left:
@@ -342,7 +342,7 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.left[left_formula]
-          variable = Variable(old_sequent.getVariableName("v"))
+          variable = Variable(old_sequent.getVariableName('v'))
           formula = left_formula.formula.replace(left_formula.variable,
             variable)
           formula.setInstantiationTime(old_sequent.depth + 1)
@@ -434,7 +434,7 @@ def proveSequent(sequent):
             old_sequent.depth + 1
           )
           del new_sequent.right[right_formula]
-          variable = Variable(old_sequent.getVariableName("v"))
+          variable = Variable(old_sequent.getVariableName('v'))
           formula = right_formula.formula.replace(right_formula.variable,
             variable)
           formula.setInstantiationTime(old_sequent.depth + 1)
@@ -453,7 +453,7 @@ def proveSequent(sequent):
           new_sequent.right[right_formula] += 1
           formula = right_formula.formula.replace(
             right_formula.variable,
-            UnificationTerm(old_sequent.getVariableName("t"))
+            UnificationTerm(old_sequent.getVariableName('t'))
           )
           formula.setInstantiationTime(old_sequent.depth + 1)
           if formula not in new_sequent.right:
