@@ -368,7 +368,7 @@ def main():
   print('  P and Q        (conjunction)')
   print('  P implies Q    (implication)')
   print('  forall x. P    (universal quantification)')
-  print('  exists x. P   (existential quantification)')
+  print('  exists x. P    (existential quantification)')
   print('')
   print('Enter formulae at the prompt. The following commands ' \
     'are also available for manipulating axioms:')
