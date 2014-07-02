@@ -193,6 +193,8 @@ def proveSequent(sequent):
           if pos < 0:
             break
         if substitution is not None:
+          for k, v in substitution.items():
+            print('%s = %s' % (k, v))
           proven |= old_sequent.siblings
           frontier = [sequent for sequent in frontier
             if sequent not in old_sequent.siblings]
