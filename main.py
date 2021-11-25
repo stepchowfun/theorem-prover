@@ -385,7 +385,7 @@ def main():
 
   while True:
     try:
-      inp = raw_input('\n> ')
+      inp = input('\n> ')
       commands = ['axiom', 'lemma', 'axioms', 'lemmas', 'remove', 'reset']
       tokens = [(token.lower() if token in commands else token)
         for token in lex(inp)]
